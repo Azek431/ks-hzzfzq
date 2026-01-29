@@ -133,7 +133,6 @@ function mainRun(img) {
     // 计算荆棘数据
     let data = getThornsData(img);
 
-
     if (data) {
         // 绘制
         threads.start(function() {
@@ -208,6 +207,7 @@ function drawImg(img, data, options) {
 function ckltEndX(data) {
     //空白区域判断
     if (data.length == 0) {
+        toast("没有识别到荆棘，执行跳跃空白");
         return device.width - random(sd.xp(134 / 720), sd.xp(231 / 720));
         
     }
@@ -268,17 +268,6 @@ function clickResurgenceButton() {
 
 }
 
-// 等待到玩家落地  -2026-1-29 18:36 37 新增。还有最后一天就放假了😁
-// function waitPlayersFall() {
-//     while (true) {
-//         // 截图
-//         let img = captureScreen();
-        
-
-//     }
-
-// }
-
 
 
 // 单次执行脚本
@@ -303,10 +292,15 @@ function cycleRun() {
         while (cycleRun.state) {
             // 截图
             let img = captureScreen();
+            if (!img) {
+                toast("没有获取到图片，是不是忘给获取屏幕权限了");
+                openGetScreenPermissions();
+                
+            }
 
             // 计算荆棘数据
             let data = getThornsData(img);
-
+            
             if (data && img) {
                 // 绘制
                 showBitmap = null;

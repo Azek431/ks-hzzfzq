@@ -1,17 +1,11 @@
+"auto";
+
 importClass(android.view.WindowManager);
 
 // 打开悬浮窗
 ui.openWindow.setOnClickListener(function(view) {
     threads.start(function() {
-        threads.start(function() {
-            let Allow = textMatches(/(允许|立即开始|统一|授予)/).findOne(10 * 1000);
-            if (Allow) {
-                Allow.click();
-
-            }
-
-        });
-        requestScreenCapture();
+        openGetScreenPermissions();
 
     })
 

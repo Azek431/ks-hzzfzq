@@ -257,12 +257,27 @@ function windowShow() {
 
         // 显示位置
         w.setPosition(sd.x(103, 720), sd.y(431, 1600))
-        
+
         windowOn.main(w);
 
     })
 
 }
+
+// 自动打开获取屏幕权限
+function openGetScreenPermissions() {
+    threads.start(function() {
+        let Allow = textMatches(/(允许|立即开始|统一|授予|同意)/).findOne(10 * 1000);
+        if (Allow) {
+            Allow.click();
+
+        }
+
+    });
+    requestScreenCapture();
+}
+
+
 
 /**
  * 获取状态栏高度
