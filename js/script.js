@@ -1,6 +1,3 @@
-// 导入模块
-var adtScript = require("./adventuresScript.js");
-
 // 初始化悬浮窗 (绘制)
 var cw = floaty.rawWindow(`
     <canvas id = "canvas" />
