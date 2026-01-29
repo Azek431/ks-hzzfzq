@@ -1,0 +1,74 @@
+<frame
+    bg="#41080808"
+    w="{{Math.round(720 * 0.301)}}"
+    h="{{Math.round(1600 * 0.086)}}">
+
+    <LinearLayout
+        layout_width="match_parent"
+        layout_height="match_parent"
+        orientation="vertical">
+
+        <text
+            text="火崽崽过大年辅助"
+            textColor="#00ebff"
+            textSize="8sp"
+            gravity="center"
+            margin="0 5 0 5" />
+
+        <LinearLayout
+            layout_width="match_parent"
+            layout_height="match_parent"
+            orientation="horizontal">
+
+            <button
+                id="cycleRun"
+                text="循环执行"
+                textSize="10sp"
+                textColor="#00bffe"
+                layout_width="86"
+                layout_height="43"
+                margin="5 0 0 0" />
+
+            <button
+                id="aRun"
+                text="单次执行"
+                textSize="10sp"
+                textColor="#00bbff"
+                layout_width="86"
+                layout_height="43"
+                margin="5 0 0 0" />
+
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <text
+        text="q群: 130330601"
+        textColor="#007fff"
+        textSize="10sp"
+        gravity="bottom"
+        margin="3 0 0 48" />
+
+    <text
+        text="频道: @AzekMain"
+        textColor="#1199ff"
+        textSize="10sp"
+        gravity="bottom"
+        margin="3 0 0 33" />
+
+    <text
+        text="声明: 本脚本纯公益开源, 不收费。正版请去GitHub上下载"
+        textColor="#0433ff"
+        textSize="8sp"
+        gravity="bottom"
+        margin="3 0 0 18" />
+    
+        <text
+        text="GitHub: Azek431/ks-hzzfzq"
+        textColor="#00FFFF"
+        textSize="10sp"
+        gravity="bottom"
+        margin="3 0 0 3" />
+
+</frame>

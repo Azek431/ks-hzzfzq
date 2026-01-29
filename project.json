@@ -1,0 +1,75 @@
+{
+  "abis": [
+    "arm64-v8a"
+  ],
+  "androidResources": {
+    "manifest": "AndroidManifest.xml",
+    "resDir": "res"
+  },
+  "assets": [],
+  "build": {
+    "build_id": "F2DDF2BB-2",
+    "build_number": 2,
+    "build_time": 1769689105436,
+    "release": false
+  },
+  "encryptLevel": 3,
+  "features": {
+    "activityIntentTasks": true,
+    "nodejs": "disabled"
+  },
+  "icon": "images/ic_app_logo.png",
+  "launchConfig": {
+    "displaySplash": false,
+    "hideLogs": false,
+    "stableMode": false
+  },
+  "main": "main.js",
+  "name": "快手火崽崽辅助器",
+  "optimization": {
+    "obfuscateComponents": true,
+    "removeAccessibilityService": false,
+    "removeOpenCv": false,
+    "unusedResources": false
+  },
+  "packageName": "Azek.ks.hzz.fzq",
+  "permissionConfig": {
+    "manifestPermissions": [
+      "android.permission.SYSTEM_ALERT_WINDOW",
+      "android.permission.REQUEST_DELETE_PACKAGES",
+      "android.permission.REQUEST_INSTALL_PACKAGES",
+      "android.permission.ACCESS_MEDIA_LOCATION",
+      "android.permission.KILL_BACKGROUND_PROCESSES",
+      "android.permission.REORDER_TASKS",
+      "android.permission.REQUEST_COMPANION_RUN_IN_BACKGROUND",
+      "android.permission.REQUEST_COMPANION_USE_DATA_IN_BACKGROUND",
+      "android.permission.RESTART_PACKAGES",
+      "android.permission.RUN_IN_BACKGROUND",
+      "android.permission.USE_DATA_IN_BACKGROUND",
+      "android.permission.FOREGROUND_SERVICE"
+    ],
+    "requestListOnStartup": [
+      "android.permission.SYSTEM_ALERT_WINDOW",
+      "android.permission.REQUEST_DELETE_PACKAGES",
+      "android.permission.REQUEST_INSTALL_PACKAGES",
+      "android.permission.ACCESS_MEDIA_LOCATION",
+      "android.permission.KILL_BACKGROUND_PROCESSES",
+      "android.permission.REORDER_TASKS",
+      "android.permission.REQUEST_COMPANION_RUN_IN_BACKGROUND",
+      "android.permission.REQUEST_COMPANION_USE_DATA_IN_BACKGROUND",
+      "android.permission.RESTART_PACKAGES",
+      "android.permission.RUN_IN_BACKGROUND",
+      "android.permission.USE_DATA_IN_BACKGROUND",
+      "android.permission.FOREGROUND_SERVICE"
+    ]
+  },
+  "scripts": {},
+  "signingConfig": {
+    "alias": "Azek.签名",
+    "keystore": "/storage/emulated/0/脚本/.keystore/Azek签名.jks",
+    "uuid": "e5305614-90a8-47f9-a949-6d03c09533f6"
+  },
+  "useFeatures": [],
+  "versionCode": 1,
+  "versionName": "1.0.1 first"
+}
