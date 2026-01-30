@@ -25,7 +25,8 @@ function main(w) {
 
         return true;
     })
-
+    
+    // 单次执行
     w.aRun.setOnClickListener((view) => {
         threads.start(() => {
             script.run();

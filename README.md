@@ -27,6 +27,7 @@
   <img src="images/Main_ui.jpg" width="180" alt="主页">
   <img src="images/Main_test.jpg" width="180" alt="测试算法">
   <img src="images/Effect_show.jpg" width="180" alt="效果展示">
+  <img src="images/Effect_show2.jpg" width="180" alt="效果展示2">
 </p>
 
 ---
@@ -41,6 +42,7 @@
 7. 更高的准确率，只要不出现卡顿等情况，几乎可以 100% 识别成功
 8. 自动复活功能，采用组件获取等实现自动查找复活按钮并点击该位置
 9. 很简洁的ui，没有杂乱组件，没有要调的复杂参数，只有一个打开 脚本悬浮窗 和算法测试功能
+10. 具有超强科技感的绘制，超强的可视化，具体可看效果 预览截图/效果展示
 
 ---
 

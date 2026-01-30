@@ -8,9 +8,9 @@
   },
   "assets": [],
   "build": {
-    "build_id": "EB642252-12",
-    "build_number": 12,
-    "build_time": 1769744918127,
+    "build_id": "B4613520-14",
+    "build_number": 14,
+    "build_time": 1769786135972,
     "release": false
   },
   "encryptLevel": 3,
@@ -70,6 +70,6 @@
     "uuid": "e5305614-90a8-47f9-a949-6d03c09533f6"
   },
   "useFeatures": [],
-  "versionCode": 11,
-  "versionName": "1.1.1 修复自动打开获取屏幕权限"
+  "versionCode": 20,
+  "versionName": "1.2.0 稳定版"
 }

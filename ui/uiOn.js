@@ -1,7 +1,5 @@
 "auto";
 
-importClass(android.view.WindowManager);
-
 // 打开悬浮窗
 ui.openWindow.setOnClickListener(function(view) {
     threads.start(function() {
@@ -104,44 +102,67 @@ ui.scaleSlider.addOnChangeListener({
     },
 });
 
-// 测试算法
+// 测试算法点击事件【优化版：稳+容错+体验佳，新增绘制用时统计】
 ui.testScript.setOnClickListener((view) => {
-    // 图片赋值
-    let img = images.read(currentImgPath);
-
-    let startTime = Date.now();
-
-    let data = script.getThornsData(img);
-
-    // 测试结果
-    let text = `用时: ${Date.now() - startTime} ms`
-
-
-    // 绘制
-    if (data) {
-        text = `测试成功！${text}`;
-
-        img = script.drawImg(showImg, data);
-        setShowImgValue(img, {
-            show: true
-        });
-
-    } else {
-        text = `未识别到荆棘, ${text}`;
-
+    // 前置校验：路径/图片读取兜底，避免空路径报错
+    if (!currentImgPath || currentImgPath.trim() === "") {
+        toast("测试失败：未获取到有效图片路径");
+        return true;
     }
 
-    // 计算跳跃到的位置
-    let endX = script.ckltEndX(data);
+    try {
+        // 1. 读取测试图片，强校验有效性
+        let img = images.read(currentImgPath);
+        if (!img || !img.bitmap) {
+            toast("测试失败：图片读取失败/图片文件损坏");
+            return true;
+        }
 
-    // 计算长按时间
-    let pressTime = script.ckltJumpToXTime(endX);
+        // 2. 计时执行荆棘识别，核心测试逻辑
+        let startTime = Date.now();
+        let data = script.getThornsData(img);
+        let recognizeCost = Date.now() - startTime; // 识别耗时
+        // 标准化数据：确保始终是数组，避免后续判断出错
+        data = Array.isArray(data) ? data : [];
 
-    text += `\n长按时间: ${pressTime}`
+        // 3. 初始化测试文本，区分识别结果
+        let text = `识别用时: ${recognizeCost} ms`;
+        let drawCost = 0; // 绘制耗时初始化
+        if (data.length > 0) {
+            text = `测试成功！${text}`;
+            // 计时执行绘制，新增绘制耗时统计
+            let drawStartTime = Date.now();
+            let drawImg = script.drawImg(img, data);
+            drawCost = Date.now() - drawStartTime; // 计算绘制耗时
+            // 校验绘制结果
+            if (drawImg) {
+                setShowImgValue(drawImg, { show: true });
+                text += `\n绘制用时: ${drawCost} ms`; // 拼接绘制用时
+            } else {
+                text += `\n⚠️  荆棘识别成功，但绘制失败 (绘制用时: ${drawCost} ms)`;
+            }
+        } else {
+            text = `未识别到荆棘, ${text}`;
+        }
 
-    // 信息提示框
-    toast(text);
+        // 4. 计算跳跃参数，全程校验避免异常
+        let endX = script.ckltEndX(data);
+        let pressTime = script.ckltJumpToXTime(endX);
+        // 格式化参数展示，兜底非法值
+        endX = (typeof endX === 'number' && endX >= 0) ? endX.toFixed(0) : "无效";
+        pressTime = (typeof pressTime === 'number' && pressTime >= 0) ? pressTime.toFixed(1) : "无效";
 
+        // 5. 拼接最终测试信息，补充落点坐标
+        text += `\n落点X坐标: ${endX}px\n长按时间: ${pressTime}ms`;
+
+        // 6. 友好提示测试结果
+        toast(text);
+
+    } catch (e) {
+        // 全局异常捕获，精准提示错误原因
+        toast(`测试异常：${e.message || "未知错误"}`);
+        console.error("测试算法报错：", e);
+    }
 
     return true;
-})
+});
