@@ -1,5 +1,5 @@
 <p align="center">
-  <img src = "Images/ic_app_logo.png" alt="ic_app_logo" width="128" height="128">
+  <img src = "images/ic_app_logo.png" alt="ic_app_logo" width="128" height="128">
 </p>
 
 <h1 align="center"快手火崽崽辅助器</h1>
