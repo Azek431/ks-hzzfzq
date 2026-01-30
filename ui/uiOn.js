@@ -5,8 +5,8 @@ importClass(android.view.WindowManager);
 // 打开悬浮窗
 ui.openWindow.setOnClickListener(function(view) {
     threads.start(function() {
-        // ScreenAuthModule.requestScreenCapture();
-        openGetScreenPermissions();
+        ScreenAuthModule.requestScreenCapture();
+        // openGetScreenPermissions();
         
     })
 

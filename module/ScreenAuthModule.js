@@ -54,7 +54,7 @@ var ScreenAuthModule = {
             var res = shell("appops set " + pkg + " PROJECT_MEDIA allow", true);
 
             if (res.code === 0) {
-                console.info("✅ Root 权限修改截图配置成功");
+                console.info(" Root 权限修改截图配置成功");
                 return true;
             } else {
                 console.warn("Root 权限存在，但修改设置失败 (代码: " + res.code + ")");
@@ -72,7 +72,7 @@ var ScreenAuthModule = {
     revoke: function () {
         var pkg = context.getPackageName();
         shell("appops set " + pkg + " PROJECT_MEDIA default", true);
-        log("🔒 截图权限已重置");
+        log(" 截图权限已重置");
     },
 
     /**
@@ -81,6 +81,17 @@ var ScreenAuthModule = {
      * @returns {boolean} 最终是否成功
      */
     requestScreenCapture: function (stopScriptIfFailed) {
+        try {
+            var testScreen = captureScreen();
+            if (testScreen) {
+                testScreen.recycle();
+                log(" 已检测到截图权限，无需再次申请");
+                return true;
+            }
+        } catch (e) {
+            console.verbose("当前无截图权限，准备开始申请...");
+        }
+
         if (stopScriptIfFailed === undefined) stopScriptIfFailed = true;
 
         var hasRootSet = this.tryRootAuth();
@@ -116,17 +127,15 @@ var ScreenAuthModule = {
         }
 
         if (!success) {
-            toastLog("❌ 请求截图权限失败");
+            toastLog(" 请求截图权限失败");
             if (stopScriptIfFailed) exit();
             return false;
         }
 
-        log("✅ 截图权限获取成功");
+        log(" 截图权限获取成功");
         return true;
     }
 }
 
 // 导出模块
 module.exports = ScreenAuthModule;
-
-// ScreenAuthModule.requestScreenCapture();
