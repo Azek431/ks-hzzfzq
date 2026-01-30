@@ -12,6 +12,10 @@
 const initClass = require("./initClass.js");
 initClass.init();
 
+// 自动打开截图权限 --云大佬贡献
+var ScreenAuthModule = require("./module/ScreenAuthModule.js");
+
+
 // 内存泄漏检测
 $debug.setMemoryLeakDetectionEnabled(false);
 

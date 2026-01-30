@@ -1,5 +1,5 @@
 <p align="center">
-  <img src = "images/ic_app_logo.png" alt="ic_app_logo" width="128" height="128">
+  <img src = "image/ic_app_logo.png" alt="ic_app_logo" width="128" height="128">
 </p>
 
 <h1 align="center"快手火崽崽辅助器</h1>
@@ -24,22 +24,14 @@
 ## 📱 预览截图
 
 <p align="center">
-  <img src="images/Main_ui.jpg" width="180" alt="主页">
-  <img src="images/Effect_show.jpg" width="180" alt="效果展示">
+  <img src="image/Main_ui.jpg" width="180" alt="主页">
+  <img src="image/Main_test.jpg" width="180" alt="测试算法">
+  <img src="image/Effect_show.jpg" width="180" alt="效果展示">
 </p>
 
 ---
 
 ## ✨ 功能特性
-1. 超强的算法，计算障碍位置平均只需 20ms ( 还有很大的优化空间，后续优化 )
-2. 全分辨率适配，使用了很多算法最终做到了全分辨率适配，每位用户体验到的效果都是一样的
-3. 绘制功能，每次识别都会绘制障碍范围矩阵 ( 绘制会加上状态栏高度 )
-4. 项目主ui使用: Google Material Design 3 ui，安卓原生ui，适配程度更好
-5. 精准计算落地时长，每次跳跃都会使用算法来计算落地时长 ( 平均 0 ms )，可以更快的执行下次跳跃来做到均衡
-6. 提供内置算法测试功能，选择图片一键测试 执行算法用时、长按事件 数据
-7. 更高的准确率，只要不出现卡顿等情况，几乎可以 100% 识别成功
-8. 自动复活功能，采用组件获取等实现自动查找复活按钮并点击该位置
-9. 很简洁的ui，没有杂乱组件，没有要调的复杂参数，只有一个打开 脚本悬浮窗 和算法测试功能
 
 
 ---
@@ -117,8 +109,8 @@ AutoJs-OpenCV-toobox/
 
 也可以给我们赞赏a
 <p align="center">
-  <img src = "images/WeiXin-qrcode.png" alt="WeiXin-qrcode" width = "360" height = "360">
-  <img src = "images/Alipay-qrcode.jpg" alt="Alipay-qrcode" width = "270" height = "405">
+  <img src = "image/WeiXin-qrcode.png" alt="WeiXin-qrcode" width = "360" height = "360">
+  <img src = "image/Alipay-qrcode.jpg" alt="Alipay-qrcode" width = "270" height = "405">
 </p>
 
 

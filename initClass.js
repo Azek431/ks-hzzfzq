@@ -42,6 +42,7 @@ function init() {
     importClass(android.graphics.Matrix)
     importClass(android.graphics.RectF)
     importClass(android.graphics.PorterDuff)
+    importClass(android.graphics.Path)
 
     // 导入 Material 类
     importClass(com.google.android.material.dialog.MaterialAlertDialogBuilder)

@@ -9,7 +9,7 @@
         orientation="vertical">
 
         <text
-            text="火崽崽过大年辅助 {{app.versionName}}"
+            text="火崽崽过大年辅助"
             textColor="#00ebff"
             textSize="8sp"
             gravity="center"

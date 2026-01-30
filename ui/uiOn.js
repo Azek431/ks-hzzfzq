@@ -5,8 +5,9 @@ importClass(android.view.WindowManager);
 // 打开悬浮窗
 ui.openWindow.setOnClickListener(function(view) {
     threads.start(function() {
+        // ScreenAuthModule.requestScreenCapture();
         openGetScreenPermissions();
-
+        
     })
 
     windowShow();
@@ -132,15 +133,15 @@ ui.testScript.setOnClickListener((view) => {
 
     // 计算跳跃到的位置
     let endX = script.ckltEndX(data);
-    
+
     // 计算长按时间
     let pressTime = script.ckltJumpToXTime(endX);
-    
+
     text += `\n长按时间: ${pressTime}`
-    
+
     // 信息提示框
     toast(text);
-    
-    
+
+
     return true;
 })

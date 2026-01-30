@@ -8,9 +8,9 @@
   },
   "assets": [],
   "build": {
-    "build_id": "8552ED11-4",
-    "build_number": 4,
-    "build_time": 1769691159720,
+    "build_id": "20856127-11",
+    "build_number": 11,
+    "build_time": 1769741803411,
     "release": false
   },
   "encryptLevel": 3,
@@ -27,7 +27,7 @@
   "main": "main.js",
   "name": "快手火崽崽辅助器",
   "optimization": {
-    "obfuscateComponents": true,
+    "obfuscateComponents": false,
     "removeAccessibilityService": false,
     "removeOpenCv": false,
     "unusedResources": false
@@ -70,6 +70,6 @@
     "uuid": "e5305614-90a8-47f9-a949-6d03c09533f6"
   },
   "useFeatures": [],
-  "versionCode": 1,
-  "versionName": "1.0.1 first"
+  "versionCode": 10,
+  "versionName": "1.1.0 正式版"
 }
