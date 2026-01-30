@@ -1,5 +1,5 @@
 <p align="center">
-  <img src = "image/ic_app_logo.png" alt="ic_app_logo" width="128" height="128">
+  <img src = "Images/ic_app_logo.png" alt="ic_app_logo" width="128" height="128">
 </p>
 
 <h1 align="center"快手火崽崽辅助器</h1>
@@ -24,9 +24,9 @@
 ## 📱 预览截图
 
 <p align="center">
-  <img src="image/Main_ui.jpg" width="180" alt="主页">
-  <img src="image/Main_test.jpg" width="180" alt="测试算法">
-  <img src="image/Effect_show.jpg" width="180" alt="效果展示">
+  <img src="images/Main_ui.jpg" width="180" alt="主页">
+  <img src="images/Main_test.jpg" width="180" alt="测试算法">
+  <img src="images/Effect_show.jpg" width="180" alt="效果展示">
 </p>
 
 ---
@@ -109,8 +109,8 @@ AutoJs-OpenCV-toobox/
 
 也可以给我们赞赏a
 <p align="center">
-  <img src = "image/WeiXin-qrcode.png" alt="WeiXin-qrcode" width = "360" height = "360">
-  <img src = "image/Alipay-qrcode.jpg" alt="Alipay-qrcode" width = "270" height = "405">
+  <img src = "images/WeiXin-qrcode.png" alt="WeiXin-qrcode" width = "360" height = "360">
+  <img src = "images/Alipay-qrcode.jpg" alt="Alipay-qrcode" width = "270" height = "405">
 </p>
 
 
