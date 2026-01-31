@@ -5,7 +5,7 @@ ui.openWindow.setOnClickListener(function(view) {
     threads.start(function() {
         ScreenAuthModule.requestScreenCapture();
         // openGetScreenPermissions();
-        
+
     })
 
     windowShow();
@@ -136,7 +136,9 @@ ui.testScript.setOnClickListener((view) => {
             drawCost = Date.now() - drawStartTime; // 计算绘制耗时
             // 校验绘制结果
             if (drawImg) {
-                setShowImgValue(drawImg, { show: true });
+                setShowImgValue(drawImg, {
+                    show: true
+                });
                 text += `\n绘制用时: ${drawCost} ms`; // 拼接绘制用时
             } else {
                 text += `\n⚠️  荆棘识别成功，但绘制失败 (绘制用时: ${drawCost} ms)`;
@@ -166,3 +168,14 @@ ui.testScript.setOnClickListener((view) => {
 
     return true;
 });
+
+// 恢复图片
+ui.recoverImg.setOnClickListener((view) => {
+    let img = images.read(currentImgPath);
+    setShowImgValue(img, {
+        show: true
+    });
+
+    toast("恢复成功");
+})
+

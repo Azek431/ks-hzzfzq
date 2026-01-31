@@ -44,44 +44,71 @@ function sd(x, w, y, h) {
     }
 }
 
-// 像素
-sd.x = function(x, w) {
-    return x * (device.width / w);
+// 像素 --2026-1-31 10:51:00 新增指定宽高
+sd.x = function(x, w, dw) {
+    if (!dw) {
+        dw = device.width;
+    }
+    return x * (dw / w);
 }
 
-sd.y = function(y, h) {
-    return y * (device.height / h);
+sd.y = function(y, h, dh) {
+    if (!dh) {
+        dh = device.height;
+    }
+    return y * (dh / h);
 }
+
 
 // 比例
-sd.xp = function(proportion) {
-    return device.width * proportion;
+sd.xp = function(proportion, dw) {
+    if (!dw) {
+        dw = device.width;
+    }
+    return dw * proportion;
 }
 
-sd.yp = function(proportion) {
-    return device.height * proportion;
+sd.yp = function(proportion, dh) {
+    if (!dh) {
+        dh = device.height;
+    }
+    return dh * proportion;
 }
 
-// 计算占比 --2026-1-28 21:52 11 新增
-sd.xpps = function(x) {
-    return x / device.width;
+
+// 计算占比 --2026-1-28 21:52 11 新增 1-31 10:56:41 修改
+sd.xpps = function(x, dw) {
+    if (!dw) {
+        dw = device.width;
+    }
+    return x / dw;
 }
 
-sd.ypps = function(y) {
+sd.ypps = function(y, dh) {
+    if (!dh) {
+        dh = dh;
+    }
     return y / device.height;
 }
 
 // 比例转坐标 (int)  --2026-1-28 21:56 44 新增
-sd.ptx = function(proportion) {
-    return Math.round(device.width * proportion);
+sd.ptx = function(proportion, dw) {
+    if (!dw) {
+        dw = device.width;
+    }
+    return Math.round(dw * proportion);
 }
 
-sd.pty = function(proportion) {
-    return Math.round(device.height * proportion);
+sd.pty = function(proportion, dh) {
+    if (!dh) {
+        dh = device.height;
+    }
+    return Math.round(dh * proportion);
 }
 
 
 /* 屏幕适配 */
+
 
 // 初始化ui
 require("./ui/uiInit.js")

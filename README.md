@@ -76,13 +76,17 @@
  5. **停止循环执行**：执行`cycleRun.state = 0;`，脚本停止循环并释放资源
  6. **单次执行测试**：执行`run();`，单次完成截图→识别→绘制→跳跃流程，用于功能测试
  ## 核心函数说明
- ### 1. 屏幕适配相关（`sd`系列）
- 内置全机型屏幕适配函数，无需额外引入，基准分辨率720*1600，支持像素/比例双向适配
- - `sd.x(x, w)`/`sd.y(y, h)`：固定像素转当前机型像素
- - `sd.xp(proportion)`/`sd.yp(proportion)`：屏幕比例转当前机型像素
- - `sd.ptx(proportion)`/`sd.pty(proportion)`：屏幕比例转当前机型整数像素
- - `sd.xpps(x)`/`sd.ypps(y)`：当前像素转屏幕比例
- ### 2. 核心业务函数
+ #### 1. 屏幕适配相关（`sd`系列）
+全机型自定义屏幕适配函数，支持**指定目标宽高**适配，默认使用设备当前分辨率，基准分辨率建议720*1600，涵盖**像素转换、比例转换、整数坐标转换**全场景，适配更灵活。
+- `sd.x(x, w, dw)`：基准宽度`w`的像素`x`，转换为目标宽度`dw`的像素（默认`dw = device.width`）
+- `sd.y(y, h, dh)`：基准高度`h`的像素`y`，转换为目标高度`dh`的像素（默认`dh = device.height`）
+- `sd.xp(proportion, dw)`：屏幕宽度占比`proportion`，转换为目标宽度`dw`的像素（默认`dw = device.width`）
+- `sd.yp(proportion, dh)`：屏幕高度占比`proportion`，转换为目标高度`dh`的像素（默认`dh = device.height`）
+- `sd.xpps(x, dw)`：当前像素`x`，转换为目标宽度`dw`的占比（默认`dw = device.width`）
+- `sd.ypps(y, dh)`：当前像素`y`，转换为设备高度的占比（兼容传参，无传参直接使用设备高度）
+- `sd.ptx(proportion, dw)`：屏幕宽度占比`proportion`，转换为目标宽度`dw`的**整数像素**（四舍五入，默认`dw = device.width`）
+- `sd.pty(proportion, dh)`：屏幕高度占比`proportion`，转换为目标高度`dh`的**整数像素**（四舍五入，默认`dh = device.height`）
+
  | 函数名               | 核心功能                                   | 关键特性                                           |
  |----------------------|--------------------------------------------|----------------------------------------------------|
  | `getThornsData(img)` | 荆棘组识别核心，基于截图解析荆棘坐标       | 像素校验、状态机解析、空值兜底返回数组             |
@@ -127,7 +131,7 @@ let thornsWidthPps = 87 / 720;      // 荆棘宽度占比
 ## 📁 项目结构
 
 ```
-AutoJs-OpenCV-toobox/
+ks-hzzfzq/
 ├── main.js          # 主入口文件
 ├── project.json              # 项目配置文件
 ├── images/                   # 图片资源

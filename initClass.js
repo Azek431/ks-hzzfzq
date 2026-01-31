@@ -1,7 +1,7 @@
 /* 初始化 (init) */
 function init() {
     console.time("初始化类用时");
-    
+
     // OpenCV 初始化
     runtime.images.initOpenCvIfNeeded();
 
@@ -43,6 +43,10 @@ function init() {
     importClass(android.graphics.RectF)
     importClass(android.graphics.PorterDuff)
     importClass(android.graphics.Path)
+    
+    importClass(android.graphics.BlurMaskFilter)
+    importClass(android.graphics.LinearGradient)
+    importClass(android.graphics.Shader)
 
     // 导入 Material 类
     importClass(com.google.android.material.dialog.MaterialAlertDialogBuilder)

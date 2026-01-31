@@ -1,0 +1,365 @@
+// 初始化悬浮窗 (绘制)
+var cw = floaty.rawWindow(`
+    <canvas id = "canvas" />
+    
+`)
+cw.setTouchable(false);
+cw.setSize(-1, -1);
+cw.setPosition(0, -getStatusBarHeightCompat());
+
+
+var cwi = null;
+
+var paint = new Paint();
+paint.setTextAlign(Paint.Align.CENTER); //写字左右中心
+paint.setStyle(Paint.Style.STROKE); //空心样式
+paint.setStrokeWidth(6); // 线宽
+
+// 画笔基础科技风配置：抗锯齿+圆角端点+描边+颜色抖动（渐变更自然）
+paint.setAntiAlias(true);
+paint.setStrokeCap(Paint.Cap.ROUND);
+paint.setStyle(Paint.Style.STROKE);
+paint.setDither(true);
+
+
+let showBitmap = null;
+// 画板刷新
+cw.canvas.on("draw", function(canvas) {
+    let matrix = new Matrix();
+
+    if (showBitmap) {
+        canvas.drawBitmap(showBitmap, matrix, paint);
+
+    } else {
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+    }
+
+})
+
+// 基础数值
+// 玩家中心x占比
+let playersXPps = 154.5 / 720;
+
+// 人物宽度 --2026-1-30 09:43 08 新增数据
+let playersWidthPps = 143 / 720;
+
+
+// 荆棘中心y占比
+let thornsCenterYPps = 1000 / 1600;
+
+// 荆棘宽度占比
+let thornsWidthPps = 87 / 720;
+
+
+// 获取荆棘数据 --豆包ai优化
+function getThornsData(img) {
+    // 边界强校验：防止空图/空bitmap崩溃，不影响原识别逻辑
+    if (!img || !img.bitmap) return [];
+    const bitmap = img.bitmap;
+    const width = bitmap.getWidth();
+    const height = bitmap.getHeight();
+    if (width <= 0 || height <= 0) return [];
+    
+    
+    // 基础变量：保留原let/const，仅预计算重复调用的Y值（提速度）
+    const checkY = sd.pty(thornsCenterYPps, height);
+    const pixels = util.java.array("int", width);
+    bitmap.getPixels(pixels, 0, width, 0, checkY, width, 1);
+    const thornsY = sd.yp(thornsCenterYPps, height); // 预计算一次，避免循环内重复调用sd.yp
+
+    // 荆棘组
+    let thornsList = [];
+
+    // 状态机变量：完全保留原版let声明
+    let state = 0; // 0: 寻找开始, 1: 寻找结束
+    let currentStartX = -1;
+    let lastThornX = -1;
+    let emptyCount = 0; // 连续空像素计数
+
+    // 预计算阈值：保留原版const，位置不变
+    const startScanX = sd.ptx(playersXPps, width);
+    const gapThreshold = sd.xp(thornsWidthPps, width);
+    const endThreshold = gapThreshold / 2;
+    const STEP = 2;
+
+    // 核心循环+判定逻辑：和你原版一字不差！无任何改动
+    for (let x = startScanX; x < width; x += STEP) {
+        let color = pixels[x];
+
+        let r = (color >> 16) & 0xFF;
+        if (r > 155) {
+            // 非障碍物逻辑：原版完全不变
+            if (state == 1) {
+                emptyCount += STEP;
+                if (emptyCount >= endThreshold) {
+                    thornsList.push({
+                        startX: currentStartX,
+                        startY: thornsY,
+                        endX: lastThornX,
+                        endY: thornsY
+                    });
+                    state = 0;
+                    currentStartX = -1;
+                }
+            }
+            continue;
+        }
+
+        // 计算 绿+蓝：原版完全不变
+        let g = (color >> 8) & 0xFF;
+        let b = color & 0xFF;
+
+        // 判定条件：红<=155 且 绿+蓝>=400：原版完全不变
+        if ((g + b) >= 400) {
+            // 是障碍物
+            if (state == 0) {
+                // 发现新障碍：原版完全不变
+                state = 1;
+                currentStartX = x;
+                emptyCount = 0;
+            } else {
+                if (x - lastThornX >= gapThreshold && lastThornX !== -1) {
+                    thornsList.push({
+                        startX: currentStartX,
+                        startY: thornsY,
+                        endX: lastThornX,
+                        endY: thornsY
+                    });
+                    currentStartX = x;
+                }
+                emptyCount = 0;
+            }
+            lastThornX = x;
+        } else {
+            if (state == 1) {
+                emptyCount += STEP;
+                if (emptyCount >= endThreshold) {
+                    thornsList.push({
+                        startX: currentStartX,
+                        startY: thornsY,
+                        endX: lastThornX,
+                        endY: thornsY
+                    });
+                    state = 0;
+                    currentStartX = -1;
+                }
+            }
+        }
+    }
+
+    // 循环结束补全最后一个障碍：原版完全不变
+    if (state == 1) {
+        thornsList.push({
+            startX: currentStartX,
+            startY: thornsY,
+            endX: width - 1,
+            endY: thornsY
+        });
+    }
+
+    // 返回荆棘组组位置数据
+    return thornsList;
+}
+
+// 脚本主内容
+function mainRun(img) {
+    // 计算荆棘组数据
+    let data = getThornsData(img);
+
+    if (data) {
+        // 绘制
+        threads.start(function() {
+            showBitmap = null;
+
+            let bitmap = drawImg(img, data, {
+                clear: true
+
+            }).bitmap;
+
+            if (bitmap) {
+                showBitmap = bitmap;
+
+                setTimeout(function() {
+                    showBitmap = null;
+
+                }, 300);
+
+            }
+        });
+
+        // 长按屏幕跳跃
+        let endX = ckltEndX(data);
+        jumpToX(endX);
+
+    }
+
+
+}
+
+
+
+
+
+
+// 计算跳跃到的坐标
+function ckltEndX(data) {
+    //空白区域判断
+    if (data.length == 0) {
+        toast("没有识别到荆棘组，执行跳跃空白");
+        return device.width - random(sd.xp(134 / 720), sd.xp(231 / 720));
+
+    }
+
+    // 获取最后差值x 和 最后坐标x
+    let endItpls = null;
+    let endX = null;
+    if (data.length == 1) {
+        // 最后差值
+        endItpls = device.width - data[0].endX;
+
+        // 最后坐标x
+        endX = device.width;
+
+    } else {
+        // 最后差值
+        endItpls = data[1].startX - data[0].endX;
+
+        // 最后坐标x
+        endX = data[1].startX;
+
+
+    }
+
+    // 判断是否能跳跃过去
+    if (endItpls >= sd.xp(playersWidthPps) * 1.25) {
+        // 可以跳跃过去
+        return endX - sd.xp(playersWidthPps) / 1.8;
+
+    } else {
+        // 跳跃空白区域
+        return data[0].startX - sd.xp(playersWidthPps) / 1.8;
+
+    }
+
+    // 无效返回
+    return null;
+}
+
+// 计算跳到指定位置的长按时间
+function ckltJumpToXTime(endX) {
+    // 校验坐标有效性，避免非数字坐标计算出异常时长
+    if (typeof endX !== 'number' || endX <= 0) return 0;
+    return (sd.xpps(endX) - playersXPps) * 800;
+}
+
+// 跳到指定坐标，执行长按屏幕操作
+function jumpToX(endX) {
+    // 获取需要长按的时间
+    let pressTime = ckltJumpToXTime(endX);
+    // 校验长按时间和坐标，有效才执行跳跃
+    if (pressTime < 1 || endX <= 0 || endX > device.width) return;
+    // 子线程执行长按，不阻塞主流程
+    threads.start(() => {
+        // 计算长按的Y坐标，在荆棘组中心Y轴附近随机偏移
+        let pressY = sd.yp(thornsCenterYPps) + random(-50.1, 50.1);
+        // 执行长按操作
+        press(endX, pressY, pressTime);
+    });
+}
+
+// 自动点击复活按钮，识别到按钮立即点击
+function clickResurgenceButton() {
+    threads.start(function() {
+        // 1毫秒超时，识别到按钮就点，无按钮直接结束，不等待
+        let button = textMatches(/(原地复活|立即复活|复活)/).findOne(1);
+        // 按钮存在且可点击时，点击按钮中心
+        if (button && button.clickable()) {
+            button.clickCenter();
+        }
+    });
+}
+
+
+// 单次执行脚本
+function run() {
+    // 截图
+    let img = captureScreen();
+
+    // let startTime = Date.now();
+
+    script.mainRun(img);
+
+    // let text = `用时: ${Date.now() - startTime} ms`;
+    // toast(text)
+
+}
+
+
+/**
+ * 游戏辅助核心循环执行函数
+ * 核心流程：截图→荆棘组识别→轨迹绘制→自动跳跃→复活检测 无限循环
+ * 状态管理：cycleRun.state - 0=停止/1=运行，控制循环启停
+ * 执行特性：关键步骤子线程解耦，避免阻塞主循环，原逻辑完全保留
+ */
+function cycleRun() {
+    // 启动核心循环子线程，避免阻塞主线程/界面卡顿
+    threads.start(function() {
+        // 设置循环运行状态，标记为启动中
+        cycleRun.state = 1;
+        // 无限循环：仅当运行状态为true时持续执行，置0则停止
+        while (cycleRun.state) {
+            // ===================== 1. 屏幕截图获取 + 权限校验 =====================
+            let img = captureScreen();
+            // 截图失败：弹提示并引导打开屏幕截图权限
+            if (!img) {
+                toast("没有获取到图片，是不是忘给获取屏幕权限了");
+                openGetScreenPermissions();
+            }
+
+            // ===================== 2. 识别荆棘组数据：基于当前截图计算荆棘组坐标 =====================
+            let data = getThornsData(img);
+
+            let endX = ckltEndX(data); // 计算跳跃目标落点X坐标
+            let jumpTime = ckltJumpToXTime(endX); // 长按时间
+            let sleepTime = jumpTime * 2 + 143; // 赋值等待时间
+
+            // ===================== 3. 全息轨迹绘制：有有效截图+荆棘组数据时执行（子线程） =====================
+            if (data && img) {
+                showBitmap = null; // 绘制前清空旧轨迹，避免画面残留
+                // 绘制子线程：不阻塞主循环的跳跃/复活逻辑
+                threads.start(() => {
+                    // 调用全息绘制函数，清空画布后绘制新轨迹
+                    let bitmap = drawImg(img, data, {
+                        clear: true
+                    }).bitmap;
+                    // 绘制成功则更新显示的bitmap
+                    if (bitmap) {
+                        showBitmap = bitmap;
+                        // 300ms后自动清空绘制，防止轨迹遮挡游戏画面
+                        setTimeout(function() {
+                            showBitmap = null;
+                        }, jumpTime / 1.1);
+                    }
+                });
+            }
+
+            // ===================== 4. 复活检测：自动点击复活按钮，实现无人值守 =====================
+            clickResurgenceButton();
+
+            // ===================== 5. 自动跳跃：执行长按屏幕跳跃逻辑 =====================
+            jumpToX(endX); // 执行跳跃操作
+            // 有有效落点时，按计算时长休眠，避免连续跳跃（兜底+68ms）
+            if (endX) {
+                sleep(sleepTime);
+            }
+
+        }
+    });
+}
+// 初始化循环状态为【停止】，防止脚本启动即自动执行（0=停止，1=运行）
+cycleRun.state = 0;
+
+
+
+module.exports = this;

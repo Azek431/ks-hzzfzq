@@ -8,9 +8,9 @@
   },
   "assets": [],
   "build": {
-    "build_id": "B4613520-14",
-    "build_number": 14,
-    "build_time": 1769786135972,
+    "build_id": "4A0A3DBC-17",
+    "build_number": 17,
+    "build_time": 1769859145034,
     "release": false
   },
   "encryptLevel": 3,
@@ -22,6 +22,7 @@
   "launchConfig": {
     "displaySplash": false,
     "hideLogs": false,
+    "splashText": "",
     "stableMode": false
   },
   "main": "main.js",
@@ -67,9 +68,9 @@
   "signingConfig": {
     "alias": "Azek.签名",
     "keystore": "/storage/emulated/0/脚本/.keystore/Azek签名.jks",
-    "uuid": "e5305614-90a8-47f9-a949-6d03c09533f6"
+    "uuid": "c63f0f18-abb2-4939-8c00-741f52fe16b0"
   },
   "useFeatures": [],
-  "versionCode": 20,
-  "versionName": "1.2.0 稳定版"
+  "versionCode": 22,
+  "versionName": "1.2.2 修复自动复活"
 }
