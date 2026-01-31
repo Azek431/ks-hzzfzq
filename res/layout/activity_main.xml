@@ -111,7 +111,7 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/recoverImg"
-                            android:text="恢复图片"
+                            android:text="恢复"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             margin="5 0 0 0"

@@ -51,47 +51,60 @@ let thornsCenterYPps = 1000 / 1600;
 // 荆棘宽度占比
 let thornsWidthPps = 87 / 720;
 
+// 分数显示文字中心y占比  --2026-1-31 21:45:37 新增
+let scoreCenterYPps = 147 / 1600;
 
-// 获取荆棘数据 --豆包ai优化
+
+
+/**
+ * 获取荆棘组位置数据（基于图像像素识别，优化checkX初始检测位置）
+ * @param {Image} img - 游戏画面截图（需包含荆棘区域，依赖bitmap属性）
+ * @returns {Array} 荆棘组数组，每项含startX/startY/endX/endY（实际画面坐标）；异常场景返回空数组
+ * @note 核心逻辑：从checkX指定的初始位置开始，扫描指定Y行像素，通过「红≤155且绿+蓝≥400」颜色特征识别荆棘，按间隔分组
+ */
 function getThornsData(img) {
-    // 边界强校验：防止空图/空bitmap崩溃，不影响原识别逻辑
+    // 边界强校验：过滤空图、无bitmap、无效尺寸等异常场景，避免崩溃
     if (!img || !img.bitmap) return [];
     const bitmap = img.bitmap;
-    const width = bitmap.getWidth();
-    const height = bitmap.getHeight();
+    const width = bitmap.getWidth();  // 画面实际宽度
+    const height = bitmap.getHeight();// 画面实际高度
     if (width <= 0 || height <= 0) return [];
 
+    // 基础变量初始化：预计算关键坐标+获取扫描行像素数据
+    const checkX = sd.ptx(playersXPps, width); // 扫描初始X位置（按玩家比例适配）
+    const checkY = sd.pty(thornsCenterYPps, height); // 扫描固定Y行（荆棘中心位置）
+    const pixels = util.java.array("int", width); // 存储扫描行的像素数据
+    // 从checkX开始，获取checkY行的像素（仅取1行，减少内存占用）
+    bitmap.getPixels(pixels, 0, width, checkX, checkY, width - checkX, 1);
+    const thornsY = sd.yp(thornsCenterYPps, height); // 荆棘Y坐标（预计算一次，提升性能）
 
-    // 基础变量：保留原let/const，仅预计算重复调用的Y值（提速度）
-    const checkY = sd.pty(thornsCenterYPps, height);
-    const pixels = util.java.array("int", width);
-    bitmap.getPixels(pixels, 0, width, 0, checkY, width, 1);
-    const thornsY = sd.yp(thornsCenterYPps, height); // 预计算一次，避免循环内重复调用sd.yp
-
-    // 荆棘组
+    // 存储最终识别到的荆棘组数据
     let thornsList = [];
 
-    // 状态机变量：完全保留原版let声明
-    let state = 0; // 0: 寻找开始, 1: 寻找结束
-    let currentStartX = -1;
-    let lastThornX = -1;
-    let emptyCount = 0; // 连续空像素计数
+    // 状态机变量：用于跟踪荆棘识别状态
+    let state = 0; // 0: 等待识别荆棘开始 | 1: 正在识别荆棘（寻找结束位置）
+    let currentStartX = -1; // 当前荆棘组的起始X坐标
+    let lastThornX = -1;    // 上一个识别到的荆棘像素X坐标
+    let emptyCount = 0;     // 连续空像素计数（用于判定荆棘组结束）
 
-    // 预计算阈值：保留原版const，位置不变
-    const startScanX = sd.ptx(playersXPps, width);
-    const gapThreshold = sd.xp(thornsWidthPps, width);
-    const endThreshold = gapThreshold / 2;
-    const STEP = 2;
+    // 识别阈值预计算：基于画面尺寸适配，确保不同分辨率下识别一致性
+    const startScanX = checkX; // 【修改1：扫描起始X设为checkX，从自定义初始位置开始扫描】
+    const gapThreshold = sd.xp(thornsWidthPps, width); // 荆棘组之间的最小间隔阈值
+    const endThreshold = gapThreshold / 2; // 判定荆棘组结束的连续空像素阈值
+    const STEP = 2; // 扫描步长（减少计算量，平衡速度与精度）
 
-    // 核心循环+判定逻辑：和你原版一字不差！无任何改动
+    // 核心循环：逐像素扫描识别荆棘，按状态机逻辑分组
     for (let x = startScanX; x < width; x += STEP) {
-        let color = pixels[x];
+        // 【修改2：像素索引校准 = 实际X坐标 - checkX（因pixels从checkX开始存储像素）】
+        let color = pixels[x - checkX];
 
+        // 提取像素RGB值，用于颜色特征判定
         let r = (color >> 16) & 0xFF;
+        // 非荆棘判定：红色值过高（排除背景等干扰像素）
         if (r > 155) {
-            // 非障碍物逻辑：原版完全不变
-            if (state == 1) {
+            if (state == 1) { // 若正处于识别荆棘状态，累计空像素
                 emptyCount += STEP;
+                // 连续空像素达到阈值 → 当前荆棘组结束
                 if (emptyCount >= endThreshold) {
                     thornsList.push({
                         startX: currentStartX,
@@ -99,26 +112,25 @@ function getThornsData(img) {
                         endX: lastThornX,
                         endY: thornsY
                     });
-                    state = 0;
+                    state = 0; // 重置状态，等待下一组荆棘
                     currentStartX = -1;
                 }
             }
-            continue;
+            continue; // 跳过非荆棘像素，继续下一轮扫描
         }
 
-        // 计算 绿+蓝：原版完全不变
+        // 提取绿色、蓝色值，补充荆棘颜色特征判定
         let g = (color >> 8) & 0xFF;
         let b = color & 0xFF;
 
-        // 判定条件：红<=155 且 绿+蓝>=400：原版完全不变
+        // 荆棘判定：红≤155 且 绿+蓝≥400（匹配荆棘颜色特征）
         if ((g + b) >= 400) {
-            // 是障碍物
-            if (state == 0) {
-                // 发现新障碍：原版完全不变
+            if (state == 0) { // 等待状态 → 识别到新荆棘组开始
                 state = 1;
-                currentStartX = x;
-                emptyCount = 0;
-            } else {
+                currentStartX = x; // 记录当前荆棘组起始X
+                emptyCount = 0;    // 重置空像素计数
+            } else { // 识别中 → 检查是否需要拆分新荆棘组
+                // 当前像素与上一个荆棘像素的间隔≥阈值 → 拆分新组
                 if (x - lastThornX >= gapThreshold && lastThornX !== -1) {
                     thornsList.push({
                         startX: currentStartX,
@@ -126,14 +138,16 @@ function getThornsData(img) {
                         endX: lastThornX,
                         endY: thornsY
                     });
-                    currentStartX = x;
+                    currentStartX = x; // 记录新组起始X
                 }
-                emptyCount = 0;
+                emptyCount = 0; // 重置空像素计数
             }
-            lastThornX = x;
+            lastThornX = x; // 更新上一个荆棘像素X坐标
         } else {
-            if (state == 1) {
+            // 非荆棘判定：颜色不匹配荆棘特征
+            if (state == 1) { // 若正处于识别荆棘状态，累计空像素
                 emptyCount += STEP;
+                // 连续空像素达到阈值 → 当前荆棘组结束
                 if (emptyCount >= endThreshold) {
                     thornsList.push({
                         startX: currentStartX,
@@ -141,26 +155,40 @@ function getThornsData(img) {
                         endX: lastThornX,
                         endY: thornsY
                     });
-                    state = 0;
+                    state = 0; // 重置状态，等待下一组荆棘
                     currentStartX = -1;
                 }
             }
         }
     }
 
-    // 循环结束补全最后一个障碍：原版完全不变
+    // 收尾处理：扫描结束后，补全未完成的最后一组荆棘
     if (state == 1) {
         thornsList.push({
             startX: currentStartX,
             startY: thornsY,
-            endX: width - 1,
+            endX: width - 1, // 结束X设为画面右边界
             endY: thornsY
         });
     }
 
-    // 返回荆棘组组位置数据
+    // 返回识别到的荆棘组位置数据
     return thornsList;
 }
+
+
+
+
+// 获取当前游戏基础信息
+function getGameInformation(img) {
+    /*
+        正在研究中
+        
+    */
+    
+    
+}
+
 
 // 脚本主内容
 function mainRun(img) {
@@ -569,7 +597,7 @@ function cycleRun() {
 
             let endX = ckltEndX(data); // 计算跳跃目标落点X坐标
             let jumpTime = ckltJumpToXTime(endX); // 长按时间
-            let sleepTime = jumpTime * 2 + 134; // 赋值等待时间
+            let sleepTime = jumpTime * 2 + 143; // 赋值等待时间
 
             // ===================== 3. 全息轨迹绘制：有有效截图+荆棘组数据时执行（子线程） =====================
             if (data && img) {
@@ -597,15 +625,18 @@ function cycleRun() {
                 resurgenceButton.clickCenter();
                 toast("点击复活按钮");
                 sleep(50);
-                
+
             }
+
+            // 获取当前游戏基础信息
+            // getGameInformation();
 
             // ===================== 5. 自动跳跃：执行长按屏幕跳跃逻辑 =====================
             jumpToX(endX); // 执行跳跃操作
             // 有有效落点时，按计算时长休眠，避免连续跳跃（兜底+68ms）
             if (endX) {
                 sleep(sleepTime);
-                
+
             }
 
         }

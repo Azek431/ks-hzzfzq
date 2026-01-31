@@ -8,9 +8,9 @@
   },
   "assets": [],
   "build": {
-    "build_id": "4A0A3DBC-17",
-    "build_number": 17,
-    "build_time": 1769859145034,
+    "build_id": "742C1F6C-18",
+    "build_number": 18,
+    "build_time": 1769862456985,
     "release": false
   },
   "encryptLevel": 3,
@@ -71,6 +71,6 @@
     "uuid": "c63f0f18-abb2-4939-8c00-741f52fe16b0"
   },
   "useFeatures": [],
-  "versionCode": 22,
-  "versionName": "1.2.2 修复自动复活"
+  "versionCode": 23,
+  "versionName": "1.2.3 稳定版"
 }

@@ -157,8 +157,14 @@ ui.testScript.setOnClickListener((view) => {
         // 5. 拼接最终测试信息，补充落点坐标
         text += `\n落点X坐标: ${endX}px\n长按时间: ${pressTime}ms`;
 
+        // test
+        startTime = Date.now();
+        script.getGameInformation(img);
+        text += "\n用时: " + (Date.now() - startTime) + " ms";
+        
         // 6. 友好提示测试结果
         toast(text);
+
 
     } catch (e) {
         // 全局异常捕获，精准提示错误原因
@@ -178,4 +184,3 @@ ui.recoverImg.setOnClickListener((view) => {
 
     toast("恢复成功");
 })
-
