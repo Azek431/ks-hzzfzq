@@ -8,7 +8,7 @@ var ScreenAuthModule = {
     */
     handleDialogLogic: function () {
         var timestamp = new Date().getTime();
-        while (new Date().getTime() - timestamp < 6000) {
+        while (new Date().getTime() - timestamp < 2000) {
             var scopeTitle = packageName("com.android.systemui").textMatches(/要开始使用.*(录制|投放).*吗.*/).visibleToUser(true).findOne(100);
             if (scopeTitle) {
                 var shareOneApp = packageName("com.android.systemui").textMatches(/.*(单个|一个|当前|此|仅).*应用.*/).visibleToUser(true).findOne(100);
@@ -81,16 +81,6 @@ var ScreenAuthModule = {
      * @returns {boolean} 最终是否成功
      */
     requestScreenCapture: function (stopScriptIfFailed) {
-        try {
-            var testScreen = captureScreen();
-            if (testScreen) {
-                testScreen.recycle();
-                log(" 已检测到截图权限，无需再次申请");
-                return true;
-            }
-        } catch (e) {
-            console.verbose("当前无截图权限，准备开始申请...");
-        }
 
         if (stopScriptIfFailed === undefined) stopScriptIfFailed = true;
 
@@ -139,3 +129,5 @@ var ScreenAuthModule = {
 
 // 导出模块
 module.exports = ScreenAuthModule;
+
+// ScreenAuthModule.requestScreenCapture();

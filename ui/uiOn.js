@@ -158,9 +158,11 @@ ui.testScript.setOnClickListener((view) => {
         text += `\n落点X坐标: ${endX}px\n长按时间: ${pressTime}ms`;
 
         // test
-        startTime = Date.now();
-        script.getGameInformation(img);
-        text += "\n用时: " + (Date.now() - startTime) + " ms";
+        // startTime = Date.now();
+        // let scorePixels = script.getScorePixelResult(img);
+        // text += "\n用时: " + (Date.now() - startTime) + " ms";
+        
+        // log(scorePixels)
         
         // 6. 友好提示测试结果
         toast(text);

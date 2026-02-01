@@ -51,9 +51,15 @@ let thornsCenterYPps = 1000 / 1600;
 // 荆棘宽度占比
 let thornsWidthPps = 87 / 720;
 
-// 分数显示文字中心y占比  --2026-1-31 21:45:37 新增
-let scoreCenterYPps = 147 / 1600;
 
+// 分数显示文字中心x占比  --2026-1-31 21:45:37 新增
+let scoreCenterXPps = 358 / 720;
+
+// 分数显示文字中心y占比  --2026-1-31 22:37:18 新增
+let scoreCenterYPps = 142 / 1600;
+
+// 分数显示文字中心宽度占比  --2026-1-31 22:37:32 新增
+let scoreWidthPps = 210 / 720;
 
 
 /**
@@ -66,8 +72,8 @@ function getThornsData(img) {
     // 边界强校验：过滤空图、无bitmap、无效尺寸等异常场景，避免崩溃
     if (!img || !img.bitmap) return [];
     const bitmap = img.bitmap;
-    const width = bitmap.getWidth();  // 画面实际宽度
-    const height = bitmap.getHeight();// 画面实际高度
+    const width = bitmap.getWidth(); // 画面实际宽度
+    const height = bitmap.getHeight(); // 画面实际高度
     if (width <= 0 || height <= 0) return [];
 
     // 基础变量初始化：预计算关键坐标+获取扫描行像素数据
@@ -84,8 +90,8 @@ function getThornsData(img) {
     // 状态机变量：用于跟踪荆棘识别状态
     let state = 0; // 0: 等待识别荆棘开始 | 1: 正在识别荆棘（寻找结束位置）
     let currentStartX = -1; // 当前荆棘组的起始X坐标
-    let lastThornX = -1;    // 上一个识别到的荆棘像素X坐标
-    let emptyCount = 0;     // 连续空像素计数（用于判定荆棘组结束）
+    let lastThornX = -1; // 上一个识别到的荆棘像素X坐标
+    let emptyCount = 0; // 连续空像素计数（用于判定荆棘组结束）
 
     // 识别阈值预计算：基于画面尺寸适配，确保不同分辨率下识别一致性
     const startScanX = checkX; // 【修改1：扫描起始X设为checkX，从自定义初始位置开始扫描】
@@ -128,7 +134,7 @@ function getThornsData(img) {
             if (state == 0) { // 等待状态 → 识别到新荆棘组开始
                 state = 1;
                 currentStartX = x; // 记录当前荆棘组起始X
-                emptyCount = 0;    // 重置空像素计数
+                emptyCount = 0; // 重置空像素计数
             } else { // 识别中 → 检查是否需要拆分新荆棘组
                 // 当前像素与上一个荆棘像素的间隔≥阈值 → 拆分新组
                 if (x - lastThornX >= gapThreshold && lastThornX !== -1) {
@@ -178,16 +184,64 @@ function getThornsData(img) {
 
 
 
+/**
+ * 获取分数区域像素判定结果（横向反向扫描，red值判定）
+ * @param {Image} img - 游戏画面截图（需包含分数显示区域）
+ * @returns {Array} 二进制结果数组，1=red≤100，0=red>100；按“x412→x355”扫描顺序存储
+ * @note 核心逻辑：扫描scoreCenterYPps对应的Y行，从适配后的x412反向扫到x355，输出逐像素判定结果
+ */
+function getScorePixelResult(img) {
+    // ===================== 边界强校验（完全复用getThornsData逻辑，保稳定） =====================
+    if (!img || !img.bitmap) return [];
+    const bitmap = img.bitmap;
+    const width = bitmap.getWidth(); // 实际屏幕宽度
+    const height = bitmap.getHeight(); // 实际屏幕高度
+    if (width <= 0 || height <= 0) return [];
 
-// 获取当前游戏基础信息
-function getGameInformation(img) {
-    /*
-        正在研究中
-        
-    */
+
+    // 基准坐标转实际坐标（sd.xp/sd.pty 适配）
+    const left = 276
+    const top = 103
+    const right = 462
+    const bottom = 170
+
+    // 计算区域宽高
+    const rectW = right - left;
+    const rectH = bottom - top;
+
+    // 基础变量初始化：预计算关键坐标+获取扫描行像素数据
+    const checkX = 343
+    const checkY = 152 // 151.5
+    const checkWidth = 168
+    const pixels = util.java.array("int", checkWidth); // 存储扫描行的像素数据
+    // 从checkX开始，获取checkY行的像素（仅取1行，减少内存占用）
+    bitmap.getPixels(pixels, 0, checkWidth, checkX, checkY, checkWidth, 1);
     
-    
+
+    log(pixels.length)
+    let scorePixelResult = [];
+    for (let x = 0; x < pixels.length; x += 1) {
+        let color = pixels[x];
+        if (color == undefined) continue;
+        let red = (color >> 16) & 0xFF;
+
+        if (red <= 100) {
+            scorePixelResult.push({code: 1, x: x + checkX, color: intColorRzls(color)});
+
+        } else {
+            scorePixelResult.push({code: 0, x: x + checkX, color: intColorRzls(color)});
+
+        }
+
+
+    }
+    log(scorePixelResult.length)
+
+
+    return scorePixelResult;
+
 }
+
 
 
 // 脚本主内容

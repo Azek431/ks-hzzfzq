@@ -9,7 +9,7 @@
     <com.google.android.material.appbar.MaterialToolbar
         animateLayoutChanges="true"
         id="toolbar"
-        title="火崽崽过大年辅助"
+        title="火崽崽过大年辅助 {{app.versionName}}"
         textStyle="bold"
         titleTextColor="#49454F"
         w="*" />
