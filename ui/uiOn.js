@@ -157,13 +157,6 @@ ui.testScript.setOnClickListener((view) => {
         // 5. 拼接最终测试信息，补充落点坐标
         text += `\n落点X坐标: ${endX}px\n长按时间: ${pressTime}ms`;
 
-        // test
-        // startTime = Date.now();
-        // let scorePixels = script.getScorePixelResult(img);
-        // text += "\n用时: " + (Date.now() - startTime) + " ms";
-        
-        // log(scorePixels)
-        
         // 6. 友好提示测试结果
         toast(text);
 
@@ -185,4 +178,80 @@ ui.recoverImg.setOnClickListener((view) => {
     });
 
     toast("恢复成功");
+})
+
+// 底部导航栏选项
+ui.navigationBarSelect.setOnClickListener((view) => {
+    if (script.thornsCenterYIndex == 1) {
+        script.thornsCenterYIndex = 0;
+        view.setText("底部导航栏: 无");
+        toast("已成功将底部导航栏设为: 无");
+    } else {
+        script.thornsCenterYIndex = 1;
+        view.setText("底部导航栏: 有");
+        toast("已成功将底部导航栏设为: 有");
+    }
+
+    script.thornsCenterYPps = script.thornsCenterYListSelect(script.thornsCenterYIndex);
+    return true;
+})
+
+// 打开日志
+ui.toolbar.setOnLongClickListener((view) => {
+    engines.execScriptFile(`./ui/logsUi.js`);
+
+    return true;
+})
+
+// 设置等待时间倍数
+ui.setWaitIntervalTime.setText(`等待时间倍数: ${script.sleepIntervalMultiples}`);
+ui.setWaitIntervalTime.setOnClickListener((view) => {
+    let DialogLayout = ui.inflate(files.read("res/layout/activity_Dialog_Input.xml"));
+    DialogLayout.InputLayout.attr("helperText", "数值");
+    DialogLayout.InputEditText.attr("inputType", "numberDecimal");
+    
+    let sim = script.sleepIntervalMultiples;
+    DialogLayout.InputEditText.attr("hint", sim);
+
+
+    let Dialog = new MaterialAlertDialogBuilder(activity);
+    Dialog.setTitle("设置等待时间倍数")
+        .setView(DialogLayout)
+
+        // 确定
+        .setPositiveButton("确定", function(view, type) {
+            let numText = DialogLayout.InputEditText.getText();
+
+            if (numText != "") {
+                script.sleepIntervalMultiples = numText;
+
+            }
+            
+            ui.setWaitIntervalTime.setText(`等待时间倍数: ${script.sleepIntervalMultiples}`);
+            storage.put("sleepIntervalMultiples", script.sleepIntervalMultiples);
+            toast("成功将等待时间倍数设置为: " + numText);
+
+        })
+
+        // 取消
+        .setNegativeButton("取消", function(view, type) {
+            toast("取消");
+
+        })
+
+        // 默认
+        .setNeutralButton("默认", function() {
+            script.sleepIntervalMultiples = 2.25;
+            
+            ui.setWaitIntervalTime.setText(`等待时间倍数: ${script.sleepIntervalMultiples}`);
+            storage.put("sleepIntervalMultiples", script.sleepIntervalMultiples);
+            toast("已成功恢复默认: " + script.sleepIntervalMultiples);
+
+        })
+
+
+    Dialog.show();
+
+
+    return true;
 })

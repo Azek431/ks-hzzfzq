@@ -63,7 +63,7 @@
                 app:strokeColor="#6200EE"
                 app:strokeWidth="2dp"
                 app:contentPadding="5dp"
-                margin="10 10 10 310">
+                margin="10 10 10 10">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -124,7 +124,73 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <com.google.android.material.textview.MaterialTextView
+                android:text="参数调整"
+                textColor="{{ThemeColor}}"
+                margin="5 10 0 0" />
 
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="15dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#6200EE"
+                app:strokeWidth="2dp"
+                app:contentPadding="5dp"
+                margin="10 10 10 10">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/navigationBarSelect"
+                            android:text="底部导航栏: 无"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            margin="5 0 0 0"
+                            backgroundTint="{{ThemeColor}}" />
+
+                    </LinearLayout>
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:text="提示: 如果手机系统导航模式是底部三键，那请将 底部导航栏 设为有。不然可能会导致算法计算错误、偏移等。"
+                        android:layout_width="200dp"
+                        android:layout_height="wrap_content"
+                        textColor="{{ThemeColor}}"
+                        margin="5 10 0 10" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/setWaitIntervalTime"
+                        android:text="设置等待时间倍数"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        margin="5 0 0 0"
+                        backgroundTint="{{ThemeColor}}" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:text="提示: 等待时间倍数就是每次循环后等待时间再乘以的数值，原计算是 长按时间 * 等待时间倍数。这个数值建议大于2，因为落地也需要时间。注意事项: 如果数值过小就会出现火崽崽在空中执行，所以导致计算错误从而失误。如果数值过大就会降低速度，但稳定度很高。所以可以适当调整到最佳数值。"
+                        android:layout_width="268dp"
+                        android:layout_height="wrap_content"
+                        textColor="{{ThemeColor}}"
+                        margin="5 10 0 10" />
+
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+            
+            
+                --> 空白控件
+                <com.google.android.material.textview.MaterialTextView
+                android:text=""
+                margin="0 0 0 200" />
 
         </LinearLayout>
     </ScrollView>

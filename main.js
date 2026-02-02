@@ -15,6 +15,9 @@ initClass.init();
 // 自动打开截图权限 --云大佬贡献
 var ScreenAuthModule = require("./module/ScreenAuthModule.js");
 
+// 两个列表数据分析
+var getListSimilarity = require("./module/getListSimilarity.js");
+
 
 // 内存泄漏检测
 $debug.setMemoryLeakDetectionEnabled(false);
@@ -86,9 +89,9 @@ sd.xpps = function(x, dw) {
 
 sd.ypps = function(y, dh) {
     if (!dh) {
-        dh = dh;
+        dh = device.height;
     }
-    return y / device.height;
+    return y / dh;
 }
 
 // 比例转坐标 (int)  --2026-1-28 21:56 44 新增
@@ -197,6 +200,23 @@ function random(minNum, maxNum) {
 random.choice = function(list) {
     return list[random(0, list.length - 1)];
 }
+
+
+// 列表处理模块
+function listProc() {}
+
+// 求和
+listProc.sum = function(arr) {
+    let sum = arr.reduce((prev, cur, index, arr) => {
+        return prev + cur;
+        
+    })
+    
+    return sum;
+    
+}
+
+
 
 
 // 二维[x,y] → 一维索引i，n=每行元素数
@@ -325,6 +345,41 @@ function getStatusBarHeightCompat() {
     return result;
 }
 
+// 获取底部导航栏高度
+function getNavigationBarHeight() {
+    // let context = context || org.autojs.autojs.AutoJs.getInstance().getApplicationContext();
+    let res = context.getResources();
+
+    // 方法1：通过公开资源标识符获取
+    // let navBarId = res.getIdentifier("navigation_bar_height", "dimen", "android");
+    // if (navBarId > 0) {
+    //     log(navBarId)
+    //     log(666, res.getDimensionPixelSize(navBarId))
+    // }
+
+
+    // 方法3：通过屏幕尺寸差值计算
+    let windowManager = context.getSystemService(android.content.Context.WINDOW_SERVICE);
+    let display = windowManager.getDefaultDisplay();
+    
+    let realMetrics = new android.util.DisplayMetrics();
+    display.getRealMetrics(realMetrics);
+    let realHeight = realMetrics.heightPixels;
+
+    let usableMetrics = new android.util.DisplayMetrics();
+    display.getMetrics(usableMetrics);
+    let usableHeight = usableMetrics.heightPixels;
+
+    let difference = realHeight - usableHeight;
+
+    // 获取状态栏高度
+    let statusBarId = res.getIdentifier("status_bar_height", "dimen", "android");
+    let statusBarHeight = (statusBarId > 0) ? res.getDimensionPixelSize(statusBarId) : 0;
+
+    // 计算导航栏高度
+    let navBarHeight = difference - statusBarHeight;
+    return Math.max(navBarHeight, 0); // 确保非负
+}
 
 
 

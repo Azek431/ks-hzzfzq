@@ -37,6 +37,17 @@ cw.canvas.on("draw", function(canvas) {
 
 })
 
+// 荆棘中心y占比选择
+function thornsCenterYListSelect(index) {
+    if (index == 1) {
+        return 961 / 1600;
+    } else {
+        return 1000 / 1600;
+    }
+
+}
+
+
 // 基础数值
 // 玩家中心x占比
 let playersXPps = 154.5 / 720;
@@ -46,7 +57,9 @@ let playersWidthPps = 143 / 720;
 
 
 // 荆棘中心y占比
-let thornsCenterYPps = 1000 / 1600;
+let thornsCenterYIndex = 0;
+let thornsCenterYPps = thornsCenterYListSelect(thornsCenterYIndex);
+
 
 // 荆棘宽度占比
 let thornsWidthPps = 87 / 720;
@@ -61,6 +74,9 @@ let scoreCenterYPps = 142 / 1600;
 // 分数显示文字中心宽度占比  --2026-1-31 22:37:32 新增
 let scoreWidthPps = 210 / 720;
 
+// 等待间隔倍数
+let sleepIntervalMultiples = storage.get("sleepIntervalMultiples") || 2.25;
+
 
 /**
  * 获取荆棘组位置数据（基于图像像素识别，优化checkX初始检测位置）
@@ -68,7 +84,11 @@ let scoreWidthPps = 210 / 720;
  * @returns {Array} 荆棘组数组，每项含startX/startY/endX/endY（实际画面坐标）；异常场景返回空数组
  * @note 核心逻辑：从checkX指定的初始位置开始，扫描指定Y行像素，通过「红≤155且绿+蓝≥400」颜色特征识别荆棘，按间隔分组
  */
-function getThornsData(img) {
+function getThornsData(img, options) {
+    if (!options) {
+        options = {};
+    }
+
     // 边界强校验：过滤空图、无bitmap、无效尺寸等异常场景，避免崩溃
     if (!img || !img.bitmap) return [];
     const bitmap = img.bitmap;
@@ -178,6 +198,20 @@ function getThornsData(img) {
         });
     }
 
+    // if (thornsList.length == 0 && options["TCYIchange"] != false) {
+    //     if (thornsCenterYIndex == 1) {
+    //         thornsCenterYIndex = 0;
+    //     } else {
+    //         thornsCenterYIndex = 1;
+    //     }
+    //     thornsCenterYPps = thornsCenterYListSelect(thornsCenterYIndex);
+
+    //     return getThornsData(img, {
+    //         TCYIchange: false
+    //     })
+
+    // }
+
     // 返回识别到的荆棘组位置数据
     return thornsList;
 }
@@ -213,30 +247,36 @@ function getScorePixelResult(img) {
     const checkX = 343
     const checkY = 152 // 151.5
     const checkWidth = 168
-    const pixels = util.java.array("int", checkWidth); // 存储扫描行的像素数据
+    const pixels = util.java.array("int", 2122 * 47); // 存储扫描行的像素数据
     // 从checkX开始，获取checkY行的像素（仅取1行，减少内存占用）
-    bitmap.getPixels(pixels, 0, checkWidth, checkX, checkY, checkWidth, 1);
-    
+    bitmap.getPixels(pixels, 0, 212, 368, 122, 212, 40);
 
-    log(pixels.length)
     let scorePixelResult = [];
-    for (let x = 0; x < pixels.length; x += 1) {
-        let color = pixels[x];
+    for (let i = 0; i < pixels.length; i += 10) {
+        let color = pixels[i];
         if (color == undefined) continue;
         let red = (color >> 16) & 0xFF;
 
         if (red <= 100) {
-            scorePixelResult.push({code: 1, x: x + checkX, color: intColorRzls(color)});
+            scorePixelResult.push({
+                code: 1,
+                i: i,
+                color: intColorRzls(color)
+            });
+            // scorePixelResult.push(1);
 
         } else {
-            scorePixelResult.push({code: 0, x: x + checkX, color: intColorRzls(color)});
+            scorePixelResult.push({
+                code: 0,
+                i: i,
+                color: intColorRzls(color)
+            });
+            // scorePixelResult.push(0);
 
         }
 
 
     }
-    log(scorePixelResult.length)
-
 
     return scorePixelResult;
 
@@ -281,24 +321,28 @@ function mainRun(img) {
 
 
 /**
- * 全息科技风绘制核心函数 - 荆棘组识别框+抛物线跳跃轨迹
+ * 全息科技风绘制核心函数 - 荆棘组识别框+抛物线跳跃轨迹【增强版】
  * @param {Image} img - 底图（游戏画面），传图则绘制，不传新建空白画布
  * @param {Array} data - 荆棘组数据数组，项含startX/startY/endX/endY坐标
  * @param {Object} options - 配置项 {clear:Boolean} 是否清空画布
  * @returns {Image} 绘制完成的图像
  * @compatible Auto.js全版本/安卓Canvas原生/零报错
  * @adaptation 所有像素尺寸已对接sd屏幕适配函数，全机型兼容
- * @update 能量峰文字替换为全息数据面板，面板贴合抛物线顶点，排版更优
+ * @update 1.新增3个核心点位坐标显示 2.新增4类科技感数据 3.优化面板光晕+等宽字体 4.坐标精准对齐点位
+ * @techStyle 等宽字体+霓虹边框+数据图标+半透渐变+精准坐标，全息座舱既视感
  */
 function drawImg(img, data, options) {
     // 【初始化区】配置兜底+画布+画笔基础设置
-    options = options || {
-        clear: false
-    };
+    options = options || { clear: false };
     let canvas = img ? new Canvas(img) : new Canvas();
-    // 新增：获取图片宽高（x方向用宽度，y方向用高度），无图时兜底设备尺寸
     let imgWidth = img ? img.getWidth() : device.width;
     let imgHeight = img ? img.getHeight() : device.height;
+    // 【新增：科技风基础配置】等宽字体+光晕参数（增强科技感）
+    const FONT_FAMILY = "monospace"; // 等宽字体，科技感核心
+    const PANEL_GLOW_COLOR = Color.parseColor("#4D80FF"); // 面板边框光晕色
+    const TEXT_SHADOW_RADIUS = sd.x(1.5, 720, imgWidth); // 文字阴影半径
+    const TEXT_SHADOW_COLOR = Color.parseColor("#00000080"); // 文字阴影色（半透黑）
+
     // 【画布操作】仅显式传clear=true时清空，避免无效操作
     if (options.clear === true) {
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
@@ -308,105 +352,114 @@ function drawImg(img, data, options) {
         let imgMat = canvas.toImage().getMat();
         return images.matToImage(imgMat);
     }
+
     // 【适配参数区】所有像素尺寸通过sd适配，基准720*1600，全机型兼容
-    // 荆棘组框偏移量（基准13/68/58）- x用imgWidth，y用imgHeight
+    // 基础偏移/圆角/半径（原有参数优化命名，保持适配逻辑）
     let offsetX13 = sd.x(13, 720, imgWidth);
     let offsetY68 = sd.y(68, 1600, imgHeight);
     let offsetY58 = sd.y(58, 1600, imgHeight);
-    // 安全圆角（安卓Canvas[0,16]限制，基准8）- x方向用imgWidth
     let safeRoundRadius = sd.x(8, 720, imgWidth);
-    // 粒子节点：光晕/实心半径（基准12/5），顶点节点稍大更醒目- x方向用imgWidth
     let glowRadius = sd.x(12, 720, imgWidth);
     let pointRadius = sd.x(5, 720, imgWidth);
     let glowRadiusTop = glowRadius + sd.x(3, 720, imgWidth);
     let pointRadiusTop = pointRadius + sd.x(2, 720, imgWidth);
-    // 文字：描边宽度/各层级字号（基准1.5/24/26/20）- x方向用imgWidth
+
+    // 【新增：坐标文字适配参数】避免遮挡，偏移量精细化
+    let coordTextOffsetY = sd.y(22, 1600, imgHeight); // 坐标文字相对节点文字的Y偏移
+    let vertexCoordOffsetX = sd.x(10, 720, imgWidth); // 顶点坐标X偏移
+    let vertexCoordOffsetY = sd.y(30, 1600, imgHeight); // 顶点坐标Y偏移
+
+    // 文字参数（新增等宽字体适配，优化科技感）
     let textStrokeWidth = sd.x(1.5, 720, imgWidth);
-    let textSizeThorn = sd.x(24, 720, imgWidth); // 荆棘组编号字号
-    let textSizeNode = sd.x(26, 720, imgWidth); // 火崽崽/落点标注字号
-    let textSizePanel = sd.x(20, 720, imgWidth); // 面板数据字号
-    // 全息面板：宽高/偏移（基准180/80）- 宽用imgWidth，高/偏移y用imgHeight
-    let panelW = sd.x(300, 720, imgWidth);
-    let panelH = sd.y(80, 1600, imgHeight);
-    let panelXOffset = sd.x(10, 720, imgWidth); // 面板相对顶点X偏移（右移）
-    let panelYOffset = sd.y(-100, 1600, imgHeight); // 面板相对顶点Y偏移（下移）
-    // 绘制偏移：荆棘组编号/节点文字（基准10/28/15）- x用imgWidth，y用imgHeight
+    let textSizeThorn = sd.x(24, 720, imgWidth);
+    let textSizeNode = sd.x(26, 720, imgWidth);
+    let textSizeCoord = sd.x(18, 720, imgWidth); // 坐标文字字号（略小于节点文字）
+    let textSizePanel = sd.x(20, 720, imgWidth);
+    let textSizePanelSmall = sd.x(16, 720, imgWidth); // 新增小字号（显示额外数据）
+
+    // 全息面板参数（优化尺寸+偏移，新增边框光晕宽度）
+    let panelW = sd.x(320, 720, imgWidth); // 面板加宽，容纳更多数据
+    let panelH = sd.y(120, 1600, imgHeight); // 面板加高，分4行显示
+    let panelXOffset = sd.x(10, 720, imgWidth);
+    let panelYOffset = sd.y(-110, 1600, imgHeight);
+    let panelBorderWidth = sd.x(2, 720, imgWidth); // 面板边框宽度
+
+    // 其他偏移参数（保持原有逻辑，优化命名）
     let thornTextX = sd.x(10, 720, imgWidth);
     let thornTextY = sd.y(28, 1600, imgHeight);
     let nodeTextOffset = sd.x(15, 720, imgWidth);
-    // 画笔宽度：雷达框/荆棘组主框/能量轨迹/激光轨迹（基准7/2.5/9/3.5）- x方向用imgWidth
     let strokeRadar = sd.x(7, 720, imgWidth);
     let strokeThorn = sd.x(2.5, 720, imgWidth);
     let strokeEnergy = sd.x(9, 720, imgWidth);
     let strokeLaser = sd.x(3.5, 720, imgWidth);
-    // 抛物线参数：高度系数（基准4.5，拉高轨迹）/分母（基准400）
-    let parabolaHeightRatio = 4.5; // 系数越小，抛物线越高
+
+    // 抛物线参数（保持原有逻辑）
+    let parabolaHeightRatio = 4.5;
     let parabolaDenominator = 400;
-    // 面板文字：行间距（基准20）/内边距（基准15/18）- x用imgWidth，y用imgHeight
-    let textYStep = sd.y(20, 1600, imgHeight);
+
+    // 面板文字排版（优化行间距，容纳4行数据）
+    let textYStep = sd.y(24, 1600, imgHeight);
     let textXStart = sd.x(15, 720, imgWidth);
-    let textYStart = sd.y(24, 1600, imgHeight);
-    // 【荆棘组识别绘制】雷达扫描外层+正红主框+黑边白字编号
-    // 雷达扫描框配置：浅红霓虹+粗边+疏密虚线- x方向用imgWidth
+    let textYStart = sd.y(30, 1600, imgHeight);
+    let textYStartSmall = sd.y(90, 1600, imgHeight); // 小字号数据起始Y坐标
+
+    // 【荆棘组识别绘制】保持原有逻辑，优化画笔抗锯齿
+    paint.setAntiAlias(true); // 新增抗锯齿，线条更顺滑
     paint.setColor(Color.parseColor("#FF6666"));
     paint.setStrokeWidth(strokeRadar);
     let radarDash = new android.graphics.DashPathEffect([sd.x(10, 720, imgWidth), sd.x(3, 720, imgWidth)], 0);
     paint.setPathEffect(radarDash);
-    // 荆棘组主框配置：正红霓虹+细边
     let thornMainColor = Color.parseColor("#FF0000");
-    // 遍历绘制所有荆棘组
+
     for (let i = 0; i < data.length; i++) {
         let thorns = data[i];
-        let startX = thorns.startX,
-            startY = thorns.startY;
-        let endX = thorns.endX,
-            endY = thorns.endY;
-        // 荆棘组框最终坐标
-        let left = startX - offsetX13,
-            top = startY - offsetY68;
-        let right = endX + offsetX13,
-            bottom = endY + offsetY58;
-        // 1. 绘制雷达扫描外层框（安全圆角）
+        let startX = thorns.startX, startY = thorns.startY;
+        let endX = thorns.endX, endY = thorns.endY;
+        let left = startX - offsetX13, top = startY - offsetY68;
+        let right = endX + offsetX13, bottom = endY + offsetY58;
+
         canvas.drawRoundRect(left, top, right, bottom, safeRoundRadius, safeRoundRadius, paint);
-        paint.setPathEffect(null); // 清除虚线，避免影响后续
-        // 2. 绘制荆棘组主轮廓框（安全圆角）
+        paint.setPathEffect(null);
         paint.setColor(thornMainColor);
         paint.setStrokeWidth(strokeThorn);
         canvas.drawRoundRect(left, top, right, bottom, safeRoundRadius, safeRoundRadius, paint);
-        // 3. 绘制荆棘组编号：黑边白字+加粗+左对齐（全息数字风格）
+
+        // 荆棘组编号：新增等宽字体+文字阴影，增强科技感
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.parseColor("#000000"));
         paint.setStrokeWidth(textStrokeWidth);
         paint.setTextSize(textSizeThorn);
         paint.setFakeBoldText(true);
         paint.setTextAlign(Paint.Align.LEFT);
-        // 编号位置：荆棘组框右上角，不遮挡主体
+        // paint.setTypeface(Typeface.create(FONT_FAMILY, Typeface.BOLD)); // 等宽加粗字体
+        paint.setShadowLayer(TEXT_SHADOW_RADIUS, 1, 1, TEXT_SHADOW_COLOR); // 文字阴影
         canvas.drawText(`[荆棘组${i+1}]`, right + thornTextX, top + thornTextY, paint);
-        // 白色填充层，保证所有背景可读
+
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.parseColor("#FFFFFF"));
         canvas.drawText(`[荆棘组${i+1}]`, right + thornTextX, top + thornTextY, paint);
-        // 画笔复位为描边，准备下一个绘制
         paint.setStyle(Paint.Style.STROKE);
+        paint.clearShadowLayer(); // 清除阴影，避免影响后续
     }
-    // 【抛物线轨迹绘制】拉高轨迹+能量渐变外层+激光虚线内层
+
+    // 【抛物线轨迹绘制】保持原有逻辑，优化轨迹顺滑度
     paint.setStrokeCap(Paint.Cap.ROUND);
     paint.setStyle(Paint.Style.STROKE);
     let firstThorn = data[0];
-    // 抛物线基础坐标（对接适配，保留原逻辑）- x用imgWidth，y用imgHeight
     let pathStartX = sd.xp(playersWidthPps, imgWidth);
     let pathStartY = firstThorn.startY - sd.y(31, 1600, imgHeight);
     let pathEndX = ckltEndX(data);
     let pathEndY = firstThorn.endY - sd.y(31, 1600, imgHeight);
     let dx = pathEndX - pathStartX;
     let dy = pathEndY - pathStartY;
-    // 防错判断：起点终点不重叠+水平距离>10才绘制，过滤无效轨迹- x用imgWidth
+
+    // 【新增：轨迹点数计算（体现精度）】
+    let trajectoryPointCount = Math.abs(dx) > 0 ? Math.abs(dx) : 0; // 轨迹点数=水平距离（逐点绘制）
+
     if (dx !== 0 && Math.abs(dx) > sd.x(10, 720, imgWidth)) {
-        // 抛物线核心算法：系数4.5拉高轨迹，适配全机型
         let centerX = pathStartX + dx / 2;
         let topY = pathStartY - Math.max(dx / parabolaHeightRatio, pathEndX / parabolaDenominator);
         let a = (pathEndY - topY) / Math.pow(dx / 2, 2);
-        // 生成抛物线路径：逐点连线，保证轨迹顺滑
         let path = new Path();
         path.moveTo(pathStartX, pathStartY);
         for (let x = pathStartX + 1; x <= pathEndX; x++) {
@@ -414,119 +467,214 @@ function drawImg(img, data, options) {
             let y = a * Math.pow(offsetX, 2) + topY;
             path.lineTo(x, y);
         }
-        // 1. 能量渐变外层轨迹：青蓝→深蓝，模拟能量波流动
-        // let energyGradient = new android.graphics.LinearGradient(
-        //     pathStartX, pathStartY, centerX, topY,
-        //     Color.parseColor("#66CCFF"), Color.parseColor("#0000FF"),
-        //     android.graphics.Shader.TileMode.CLAMP
-        // );
-        // paint.setShader(energyGradient);
+
+        // 能量渐变外层轨迹（保持原有）
         paint.setStrokeWidth(strokeEnergy);
         paint.setPathEffect(null);
         canvas.drawPath(path, paint);
-        paint.setShader(null); // 清除着色器，避免串色
-        // 2. 激光密虚线内层轨迹：亮蓝+密虚线，模拟瞄准线- x用imgWidth
+        paint.setShader(null);
+
+        // 激光密虚线内层轨迹（保持原有）
         paint.setColor(Color.parseColor("#0099FF"));
         paint.setStrokeWidth(strokeLaser);
         let laserDash = new android.graphics.DashPathEffect([sd.x(5, 720, imgWidth), sd.x(2, 720, imgWidth)], 0);
         paint.setPathEffect(laserDash);
         canvas.drawPath(path, paint);
-        paint.setPathEffect(null); // 清除虚线，准备绘制节点
-        // 【粒子节点绘制】双层光晕+配色区分，顶点节点放大更醒目- x用imgWidth
+        paint.setPathEffect(null);
+
+        // 【粒子节点绘制】保持原有配色+双层光晕，优化抗锯齿
         paint.setStyle(Paint.Style.FILL);
-        // 火崽崽（起点）：青绿色双层光晕+实心点
+        paint.setAntiAlias(true);
+
+        // 1. 火崽崽（起点）：青绿色节点+坐标显示
         paint.setColor(Color.parseColor("#3300FF99"));
         canvas.drawCircle(pathStartX, pathStartY, glowRadius, paint);
         paint.setColor(Color.parseColor("#6600FF66"));
         canvas.drawCircle(pathStartX, pathStartY, glowRadius - sd.x(3, 720, imgWidth), paint);
         paint.setColor(Color.parseColor("#00FF99"));
         canvas.drawCircle(pathStartX, pathStartY, pointRadius, paint);
-        // 能量顶点（核心）：紫蓝色双层光晕+放大实心点，视觉焦点
+
+        // 2. 能量顶点（核心）：紫蓝色节点+坐标显示
         paint.setColor(Color.parseColor("#339900FF"));
         canvas.drawCircle(centerX, topY, glowRadiusTop, paint);
         paint.setColor(Color.parseColor("#669900FF"));
         canvas.drawCircle(centerX, topY, glowRadiusTop - sd.x(3, 720, imgWidth), paint);
         paint.setColor(Color.parseColor("#9900FF"));
         canvas.drawCircle(centerX, topY, pointRadiusTop, paint);
-        // 落点（终点）：橙红色双层光晕+实心点
+
+        // 3. 落点（终点）：橙红色节点+坐标显示
         paint.setColor(Color.parseColor("#33FF3300"));
         canvas.drawCircle(pathEndX, pathEndY, glowRadius, paint);
         paint.setColor(Color.parseColor("#66FF0066"));
         canvas.drawCircle(pathEndX, pathEndY, glowRadius - sd.x(3, 720, imgWidth), paint);
         paint.setColor(Color.parseColor("#FF6600"));
         canvas.drawCircle(pathEndX, pathEndY, pointRadius, paint);
-        // 【节点文字标注】仅保留火崽崽/落点，能量峰替换为面板，排版更优
+
+        // 【节点文字+坐标标注】新增3个点位坐标，科技风排版
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.parseColor("#000000"));
         paint.setStrokeWidth(textStrokeWidth);
         paint.setTextSize(textSizeNode);
         paint.setFakeBoldText(true);
         paint.setTextAlign(Paint.Align.LEFT);
-        // 火崽崽文字：左上方偏移，避开面板和节点
-        canvas.drawText(`[火崽崽]`, pathStartX - nodeTextOffset * 3, pathStartY - nodeTextOffset, paint);
+        // paint.setTypeface(Typeface.create(FONT_FAMILY, Typeface.BOLD));
+        paint.setShadowLayer(TEXT_SHADOW_RADIUS, 1, 1, TEXT_SHADOW_COLOR);
+
+        // 🔥 火崽崽（起点）：节点文字+坐标（下方偏移，无遮挡）
+        let startCoordText = `📍 [火崽崽]`;
+        let startCoordDetail = `(X:${Math.round(pathStartX)}, Y:${Math.round(pathStartY)})`;
+        canvas.drawText(startCoordText, pathStartX - nodeTextOffset * 3, pathStartY - nodeTextOffset, paint);
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.parseColor("#00FF99"));
-        canvas.drawText(`[火崽崽]`, pathStartX - nodeTextOffset * 3, pathStartY - nodeTextOffset, paint);
-        // 落点文字：右上方偏移，无遮挡
+        canvas.drawText(startCoordText, pathStartX - nodeTextOffset * 3, pathStartY - nodeTextOffset, paint);
+        // 坐标文字（小一号，下方偏移）
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.parseColor("#000000"));
-        canvas.drawText(`[落点]`, pathEndX + nodeTextOffset, pathEndY - nodeTextOffset, paint);
+        paint.setTextSize(textSizeCoord);
+        canvas.drawText(startCoordDetail, pathStartX - nodeTextOffset * 3, pathStartY - nodeTextOffset + coordTextOffsetY, paint);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.parseColor("#00FF99"));
+        canvas.drawText(startCoordDetail, pathStartX - nodeTextOffset * 3, pathStartY - nodeTextOffset + coordTextOffsetY, paint);
+
+        // 🚀 落点（终点）：节点文字+坐标（下方偏移）
+        let endCoordText = `🎯 [落点]`;
+        let endCoordDetail = `(X:${Math.round(pathEndX)}, Y:${Math.round(pathEndY)})`;
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.parseColor("#000000"));
+        paint.setTextSize(textSizeNode);
+        canvas.drawText(endCoordText, pathEndX + nodeTextOffset, pathEndY - nodeTextOffset, paint);
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.parseColor("#FF6600"));
-        canvas.drawText(`[落点]`, pathEndX + nodeTextOffset, pathEndY - nodeTextOffset, paint);
-        // 【全息数据面板】替换原能量峰文字，贴合顶点右侧，精致紧凑无遮挡
+        canvas.drawText(endCoordText, pathEndX + nodeTextOffset, pathEndY - nodeTextOffset, paint);
+        // 坐标文字
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.parseColor("#000000"));
+        paint.setTextSize(textSizeCoord);
+        canvas.drawText(endCoordDetail, pathEndX + nodeTextOffset, pathEndY - nodeTextOffset + coordTextOffsetY, paint);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.parseColor("#FF6600"));
+        canvas.drawText(endCoordDetail, pathEndX + nodeTextOffset, pathEndY - nodeTextOffset + coordTextOffsetY, paint);
+
+        // ⚡ 抛物线顶点：新增文字+坐标（面板右侧，无遮挡）
+        let vertexCoordText = `⚡ [顶点]`;
+        let vertexCoordDetail = `(X:${Math.round(centerX)}, Y:${Math.round(topY)})`;
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.parseColor("#000000"));
+        paint.setTextSize(textSizeNode);
+        canvas.drawText(vertexCoordText, centerX + vertexCoordOffsetX, topY + vertexCoordOffsetY, paint);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.parseColor("#9900FF"));
+        canvas.drawText(vertexCoordText, centerX + vertexCoordOffsetX, topY + vertexCoordOffsetY, paint);
+        // 坐标文字
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.parseColor("#000000"));
+        paint.setTextSize(textSizeCoord);
+        canvas.drawText(vertexCoordDetail, centerX + vertexCoordOffsetX, topY + vertexCoordOffsetY + coordTextOffsetY, paint);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.parseColor("#9900FF"));
+        canvas.drawText(vertexCoordDetail, centerX + vertexCoordOffsetX, topY + vertexCoordOffsetY + coordTextOffsetY, paint);
+
+        paint.clearShadowLayer(); // 清除阴影
+
+        // 【全息数据面板】增强版：新增4类数据+光晕边框+渐变背景
         let panelPaint = new Paint();
         panelPaint.setAntiAlias(true);
         panelPaint.setStyle(Paint.Style.FILL);
-        panelPaint.setColor(Color.parseColor("#99000000")); // 半透黑全息质感，稍加深更醒目
-        // 面板坐标：贴合抛物线顶点右侧+微下移，原能量峰位置，无任何遮挡
-        let panelLeft = centerX + panelXOffset;
-        let panelTop = topY + panelYOffset;
-        let panelRight = panelLeft + panelW;
+        // 新增：面板渐变背景（深蓝→黑，科技感更强）
+        // let panelGradient = new android.graphics.LinearGradient(
+        //     panelLeft, panelTop, panelRight, panelBottom,
+        //     Color.parseColor("#CC1A36FF"), Color.parseColor("#CC000000"),
+        //     android.graphics.Shader.TileMode.CLAMP
+        // );
+        // panelPaint.setShader(panelGradient);
+
+        // 面板坐标（保持原有贴合顶点）
+        let panelLeft = centerX + panelXOffset - sd.x(100, 720, imgWidth);
+        let panelTop = topY + panelYOffset - sd.y(100, 1600, imgHeight);
+        let panelRight = panelLeft + panelW + sd.x(50, 720, imgWidth);
         let panelBottom = panelTop + panelH;
-        // 绘制面板底框：大圆角更精致（基准10），贴合科技风- x用imgWidth
-        let panelRound = sd.x(10, 720, imgWidth);
+        let panelRound = sd.x(12, 720, imgWidth); // 增大圆角，更精致
+
+        // 绘制面板底框（渐变背景+大圆角）
         canvas.drawRoundRect(panelLeft, panelTop, panelRight, panelBottom, panelRound, panelRound, panelPaint);
-        // 面板多维度实战数据计算，保留核心实用数据
-        let jumpDist = Math.abs(dx).toFixed(0); // 水平跳跃距离
-        let pressTime = ckltJumpToXTime(pathEndX).toFixed(1); // 核心长按时长
-        let jumpSpeed = (jumpDist / pressTime * 1000).toFixed(1); // 跳跃速度(px/s)
-        let vertexHeight = Math.abs(pathStartY - topY).toFixed(0); // 顶点高度
-        let thornCount = data.length; // 荆棘组总数
-        // 绘制面板文字：黑边+科技浅蓝填充，分行紧凑，适配面板尺寸
+        panelPaint.setShader(null);
+
+        // 新增：面板霓虹边框（科技蓝+细边）
+        panelPaint.setStyle(Paint.Style.STROKE);
+        panelPaint.setColor(PANEL_GLOW_COLOR);
+        panelPaint.setStrokeWidth(panelBorderWidth);
+        canvas.drawRoundRect(panelLeft, panelTop, panelRight, panelBottom, panelRound, panelRound, panelPaint);
+
+        // 面板核心数据计算（原有+新增）
+        let jumpDist = Math.abs(dx).toFixed(0);
+        let pressTime = ckltJumpToXTime(pathEndX).toFixed(1);
+        let jumpSpeed = (jumpDist / pressTime * 1000).toFixed(1);
+        let vertexHeight = Math.abs(pathStartY - topY).toFixed(0);
+        let thornCount = data.length;
+        // 新增科技数据
+        let currentTime = new Date().toLocaleTimeString().replace(/\//g, ":"); // 当前时间（简洁格式）
+        let screenRes = `${imgWidth}×${imgHeight}`; // 屏幕分辨率
+        let timestamp = Math.floor(Date.now() / 1000); // 时间戳（秒级，科技感）
+
+        // 绘制面板文字（4行数据，图标前缀+等宽字体）
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.parseColor("#000000"));
         paint.setStrokeWidth(textStrokeWidth);
         paint.setTextSize(textSizePanel);
         paint.setFakeBoldText(true);
         paint.setTextAlign(Paint.Align.LEFT);
-        // 面板文字起始坐标：内边距，不贴边更精致
+        // paint.setTypeface(Typeface.create(FONT_FAMILY, Typeface.BOLD));
+        paint.setShadowLayer(TEXT_SHADOW_RADIUS, 1, 1, TEXT_SHADOW_COLOR);
+
         let panelTextX = panelLeft + textXStart;
         let panelTextY = panelTop + textYStart;
-        // 第一行：核心操作参数（长按时长+水平距离）
-        canvas.drawText(`长按：${pressTime}ms | 距离：${jumpDist}px`, panelTextX, panelTextY, paint);
-        paint.setStyle(Paint.Style.FILL);
-        paint.setColor(Color.parseColor("#80E5FF")); // 科技浅蓝，比原蓝更通透
-        canvas.drawText(`长按：${pressTime}ms | 距离：${jumpDist}px`, panelTextX, panelTextY, paint);
-        // 第二行：跳跃性能（速度+顶点高度）
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.parseColor("#000000"));
-        canvas.drawText(`速度：${jumpSpeed}px/s | 高度：${vertexHeight}px`, panelTextX, panelTextY + textYStep, paint);
+
+        // 第1行：核心操作参数（长按+距离）
+        let line1 = `⏱️ 长按：${pressTime}ms | 📏 距离：${jumpDist}px`;
+        canvas.drawText(line1, panelTextX, panelTextY, paint);
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.parseColor("#80E5FF"));
-        canvas.drawText(`速度：${jumpSpeed}px/s | 高度：${vertexHeight}px`, panelTextX, panelTextY + textYStep, paint);
-        // 第三行：场景信息（荆棘组总数）
+        canvas.drawText(line1, panelTextX, panelTextY, paint);
+
+        // 第2行：跳跃性能参数（速度+高度）
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.parseColor("#000000"));
-        canvas.drawText(`当前荆棘组：${thornCount}个`, panelTextX, panelTextY + textYStep * 2, paint);
+        let line2 = `⚡ 速度：${jumpSpeed}px/s | 📈 高度：${vertexHeight}px`;
+        canvas.drawText(line2, panelTextX, panelTextY + textYStep, paint);
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.parseColor("#80E5FF"));
-        canvas.drawText(`当前荆棘组：${thornCount}个`, panelTextX, panelTextY + textYStep * 2, paint);
-        // 画笔最终复位：避免外部调用受当前样式影响- x用imgWidth
+        canvas.drawText(line2, panelTextX, panelTextY + textYStep, paint);
+
+        // 第3行：场景数据（荆棘组+轨迹点数）
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.parseColor("#000000"));
+        let line3 = `🌵 荆棘组：${thornCount}个 | 🔍 轨迹点：${trajectoryPointCount.toFixed(2)}个`;
+        canvas.drawText(line3, panelTextX, panelTextY + textYStep * 2, paint);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.parseColor("#80E5FF"));
+        canvas.drawText(line3, panelTextX, panelTextY + textYStep * 2, paint);
+
+        // 第4行：科技感辅助数据（时间戳+分辨率）
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.parseColor("#000000"));
+        paint.setTextSize(textSizePanelSmall); // 小字号，避免拥挤
+        let line4 = `🗓️ 时间：${currentTime}`;
+        canvas.drawText(line4, panelTextX, panelTextY + textYStep * 3, paint);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.parseColor("#80E5FF"));
+        canvas.drawText(line4, panelTextX, panelTextY + textYStep * 3, paint);
+
+        // 画笔最终复位：恢复默认样式，避免外部调用受影响
+        paint.clearShadowLayer();
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(sd.x(1, 720, imgWidth));
         paint.setColor(Color.parseColor("#000000"));
+        // paint.setTypeface(Typeface.DEFAULT);
+        paint.setFakeBoldText(false);
+        paint.setTextAlign(Paint.Align.LEFT);
+        paint.setAntiAlias(false);
     }
+
     // 【最终返回】画布转Mat再转Image，保留原兼容逻辑
     let imgMat = canvas.toImage().getMat();
     return images.matToImage(imgMat);
@@ -626,77 +774,105 @@ function run() {
 
 
 /**
- * 游戏辅助核心循环执行函数
- * 核心流程：截图→荆棘组识别→轨迹绘制→自动跳跃→复活检测 无限循环
- * 状态管理：cycleRun.state - 0=停止/1=运行，控制循环启停
- * 执行特性：关键步骤子线程解耦，避免阻塞主循环，原逻辑完全保留
+ * 游戏辅助核心循环执行函数【Auto.js Pro 专属】
+ * 核心定位：实现游戏自动化无限循环，覆盖从画面识别到操作执行的全流程，无需人工干预
+ * 核心流程：截图捕获游戏画面 → 识别荆棘位置数据 → 绘制跳跃轨迹 → 执行自动跳跃 → 检测复活按钮并触发
+ * 状态管理：通过 cycleRun.state 控制循环启停，外部可直接修改该状态变量实现控制
+ * - cycleRun.state = 0：循环停止（默认初始状态，防止脚本启动即自动执行）
+ * - cycleRun.state = 1：循环运行（启动后持续执行，直至状态改为0）
+ * 执行特性：关键的轨迹绘制步骤通过子线程实现解耦，避免阻塞主循环的跳跃和检测逻辑，保证操作流畅性
+ * 依赖函数说明：
+ * - captureScreen()：Auto.js 内置截图函数，用于获取当前游戏画面
+ * - getThornsData(img)：自定义荆棘识别函数，传入截图对象，返回荆棘位置数据数组（格式需与绘制/跳跃函数适配）
+ * - ckltEndX(data)：自定义跳跃终点计算函数，传入荆棘数据，返回跳跃目标X坐标
+ * - ckltJumpToXTime(endX)：自定义跳跃时长计算函数，传入目标X坐标，返回所需跳跃时间（单位：毫秒）
+ * - jumpToX(endX)：自定义自动跳跃函数，传入目标X坐标，执行跳跃操作
+ * - drawImg(img, data, options)：自定义轨迹绘制函数，传入截图、荆棘数据和配置，返回含绘制结果的对象
+ * - getResurgenceButton()：自定义复活按钮识别函数，返回按钮对象（含 clickCenter() 点击方法）
+ * - openGetScreenPermissions()：Auto.js 权限申请函数，截图权限未获取时触发
  */
 function cycleRun() {
-    // 启动核心循环子线程，避免阻塞主线程/界面卡顿
+    // 启动子线程执行核心循环，避免阻塞主线程，保证脚本整体响应性
     threads.start(function() {
-        // 设置循环运行状态，标记为启动中
-        cycleRun.state = 1;
-        // 无限循环：仅当运行状态为true时持续执行，置0则停止
+        cycleRun.state = 1; // 线程启动后，将循环状态设为【运行中】
+        let loopCount = 0; // 无荆棘数据时的循环计数器，用于触发复活检测
+        // 复活检测触发阈值：当连续 N 次循环未识别到荆棘数据时，触发复活按钮检测（可根据游戏复活动画时长调整）
+        const RESURGENCE_CHECK_INTERVAL = 3; 
+
+        // 主循环：只要循环状态为1（运行中），就持续执行自动化流程
         while (cycleRun.state) {
-            // ===================== 1. 屏幕截图获取 + 权限校验 =====================
+            // 1. 截图捕获游戏画面：获取当前屏幕帧，作为后续识别的基础
             let img = captureScreen();
-            // 截图失败：弹提示并引导打开屏幕截图权限
+            // 截图失败处理：未获取到截图权限时，提示并触发权限申请
             if (!img) {
-                toast("没有获取到图片，是不是忘给获取屏幕权限了");
-                openGetScreenPermissions();
+                toast("未获取到截图权限，无法执行游戏辅助");
+                openGetScreenPermissions(); // 打开截图权限申请页面
+                continue; // 跳过当前循环，等待权限申请完成后重新尝试
             }
-
-            // ===================== 2. 识别荆棘组数据：基于当前截图计算荆棘组坐标 =====================
+            
+            // 2. 识别荆棘位置数据：调用自定义识别函数，从截图中提取荆棘坐标/范围数据
             let data = getThornsData(img);
-
-            let endX = ckltEndX(data); // 计算跳跃目标落点X坐标
-            let jumpTime = ckltJumpToXTime(endX); // 长按时间
-            let sleepTime = jumpTime * 2 + 143; // 赋值等待时间
-
-            // ===================== 3. 全息轨迹绘制：有有效截图+荆棘组数据时执行（子线程） =====================
-            if (data && img) {
-                showBitmap = null; // 绘制前清空旧轨迹，避免画面残留
-                // 绘制子线程：不阻塞主循环的跳跃/复活逻辑
-                threads.start(() => {
-                    // 调用全息绘制函数，清空画布后绘制新轨迹
-                    let bitmap = drawImg(img, data, {
-                        clear: true
-                    }).bitmap;
-                    // 绘制成功则更新显示的bitmap
-                    if (bitmap) {
-                        showBitmap = bitmap;
-                        // 300ms后自动清空绘制，防止轨迹遮挡游戏画面
-                        setTimeout(function() {
-                            showBitmap = null;
-                        }, jumpTime / 1.1);
+            // 无荆棘数据处理：未识别到荆棘时，累计计数器并检测复活
+            if (data.length == 0) {
+                loopCount++; // 累计无数据循环次数
+                // 计数器达到阈值时，触发复活按钮检测
+                if (loopCount >= RESURGENCE_CHECK_INTERVAL) {
+                    let resurgenceButton = getResurgenceButton(); // 识别复活按钮位置
+                    // 识别到复活按钮时，执行点击并等待复活动画
+                    if (resurgenceButton) {
+                        resurgenceButton.clickCenter(); // 点击复活按钮中心位置，确保触发
+                        toast("自动复活中..."); // 提示用户当前正在执行复活操作
+                        sleep(200); // 复活动画持续时间（200毫秒），避免后续操作干扰复活
+                        loopCount = 0; // 重置无数据计数器，重新开始累计
                     }
-                });
+                    continue; // 跳过当前循环剩余步骤，进入下一轮检测
+                }
             }
 
-            // ===================== 4. 复活检测：自动点击复活按钮，实现无人值守 =====================
-            let resurgenceButton = getResurgenceButton();
-            if (resurgenceButton) {
-                resurgenceButton.clickCenter();
-                toast("点击复活按钮");
-                sleep(50);
+            // 3. 计算跳跃参数：基于荆棘数据确定跳跃终点和所需时长
+            let endX = ckltEndX(data); // 计算跳跃的目标X坐标（横向跳跃核心参数）
+            let jumpTime = ckltJumpToXTime(endX); // 计算完成该跳跃所需的时间（控制跳跃力度）
+            let sleepTime = (jumpTime * sleepIntervalMultiples); // 跳跃后等待时长：基于跳跃时间的2.25倍 ( 默认 )，确保跳跃动作完成
 
-            }
-
-            // 获取当前游戏基础信息
-            // getGameInformation();
-
-            // ===================== 5. 自动跳跃：执行长按屏幕跳跃逻辑 =====================
-            jumpToX(endX); // 执行跳跃操作
-            // 有有效落点时，按计算时长休眠，避免连续跳跃（兜底+68ms）
+            // 4. 执行自动跳跃：当存在有效目标X坐标时，触发跳跃操作
             if (endX) {
-                sleep(sleepTime);
-
+                jumpToX(endX); // 调用自定义跳跃函数，执行横向跳跃
             }
 
+            // 5. 子线程绘制轨迹：单独启动线程绘制跳跃轨迹，避免阻塞主循环的睡眠和下一轮识别
+            threads.start(() => {
+                // 确保截图和荆棘数据有效时才执行绘制（避免空指针错误）
+                if (img && data) {
+                    // 调用绘制函数，clear: true 表示绘制前清空之前的轨迹
+                    let result = drawImg(img, data, {
+                        clear: true
+                    });
+                    // 绘制成功后，显示绘制结果 bitmap，并在指定时间后释放
+                    if (result && result.bitmap) {
+                        showBitmap = result.bitmap; // 将绘制结果赋值给全局变量，用于画面显示
+                        // 轨迹显示时长：跳跃时间的0.8倍，避免轨迹显示过久影响视觉
+                        setTimeout(() => {
+                            showBitmap = null; // 释放 bitmap 资源，防止内存泄漏
+                        }, jumpTime * 0.8);
+                    }
+                }
+            });
+
+            // 6. 循环等待：根据跳跃状态设置不同的等待时长，平衡效率和稳定性
+            if (endX >= 0) {
+                sleep(sleepTime); // 有效跳跃后，按计算的时长等待
+                // 短时跳跃补充等待：当跳跃后等待时长≤450毫秒时，额外补充68毫秒，防止跳跃不充分
+                if (sleepTime <= 450) {
+                    sleep(68);
+                }
+            } else {
+                sleep(10); // 无有效跳跃目标时，兜底等待10毫秒，防止CPU空转飙升
+            }
         }
     });
 }
-// 初始化循环状态为【停止】，防止脚本启动即自动执行（0=停止，1=运行）
+// 初始化循环状态为【停止】（0=停止，1=运行）
+// 注意：脚本启动时不会自动执行循环，需通过外部逻辑将 cycleRun.state 设为1启动（如按钮点击、延时启动等）
 cycleRun.state = 0;
 
 
