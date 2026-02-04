@@ -8,9 +8,9 @@
   },
   "assets": [],
   "build": {
-    "build_id": "1C491A88-24",
-    "build_number": 24,
-    "build_time": 1770046836430,
+    "build_id": "2C84F435-28",
+    "build_number": 28,
+    "build_time": 1770218687312,
     "release": false
   },
   "encryptLevel": 3,
@@ -71,6 +71,6 @@
     "uuid": "40cbb4a6-e5db-4674-acca-c14727a0cfe7"
   },
   "useFeatures": [],
-  "versionCode": 30,
-  "versionName": "1.3.0 加强版"
+  "versionCode": 40,
+  "versionName": "1.4.0 优化版"
 }

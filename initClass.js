@@ -47,6 +47,7 @@ function init() {
     importClass(android.graphics.BlurMaskFilter)
     importClass(android.graphics.LinearGradient)
     importClass(android.graphics.Shader)
+    importClass(android.graphics.RadialGradient)
 
     // 导入 Material 类
     importClass(com.google.android.material.dialog.MaterialAlertDialogBuilder)

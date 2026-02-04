@@ -160,22 +160,22 @@
                     </LinearLayout>
 
                     <com.google.android.material.textview.MaterialTextView
-                        android:text="提示: 如果手机系统导航模式是底部三键，那请将 底部导航栏 设为有。不然可能会导致算法计算错误、偏移等。"
+                        android:text="提示: 如果手机系统导航模式是底部三键，那请将 底部导航栏 设为有。不然可能会导致算法计算错误、偏移等。从 v1.4.* 开始，识别不到荆棘会自动切换再识别，但你手机底部如果有三键，那你可以选择 ( 不选择会 增加计算 或 偏框 等 )"
                         android:layout_width="200dp"
                         android:layout_height="wrap_content"
                         textColor="{{ThemeColor}}"
                         margin="5 10 0 10" />
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/setWaitIntervalTime"
-                        android:text="设置等待时间倍数"
+                        android:id="@+id/setThornsCeneterYPps"
+                        android:text="设置荆棘中心y屏幕占比"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         margin="5 0 0 0"
                         backgroundTint="{{ThemeColor}}" />
 
                     <com.google.android.material.textview.MaterialTextView
-                        android:text="提示: 等待时间倍数就是每次循环后等待时间再乘以的数值，原计算是 长按时间 * 等待时间倍数。这个数值建议大于2，因为落地也需要时间。注意事项: 如果数值过小就会出现火崽崽在空中执行，所以导致计算错误从而失误。如果数值过大就会降低速度，但稳定度很高。所以可以适当调整到最佳数值。"
+                        android:text="提示: 荆棘中心y屏幕占比就是: 荆棘中心y / 屏幕高度，如果出现绘制y偏移，那就可以调整这个参数。这个参数非常重要，是算法的根本，如果出现绘制y坐标偏移 那就是说明这个参数错了，请调整，不然算法就会计算错误从而失误。调整教程: 如果 绘制荆棘框 偏下，那请调低，如果偏高，那请调高。因为 y坐标 是从上往下的。"
                         android:layout_width="268dp"
                         android:layout_height="wrap_content"
                         textColor="{{ThemeColor}}"

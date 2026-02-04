@@ -118,17 +118,23 @@ ui.testScript.setOnClickListener((view) => {
             return true;
         }
 
+        let data = {}
+        let text = "";
+
         // 2. 计时执行荆棘识别，核心测试逻辑
         let startTime = Date.now();
-        let data = script.getThornsData(img);
-        let recognizeCost = Date.now() - startTime; // 识别耗时
-        // 标准化数据：确保始终是数组，避免后续判断出错
-        data = Array.isArray(data) ? data : [];
+        data.thorns = script.getThornsData(img);
+        text = `识别用时: ${Date.now() - startTime} ms`;
+
+        // 获取分数点数
+        startTime = Date.now();
+        data.scorePoints = script.getScorePoints(img);
+        text += `\n获取分数区域点数用时: ${Date.now() - startTime} ms`
+
 
         // 3. 初始化测试文本，区分识别结果
-        let text = `识别用时: ${recognizeCost} ms`;
         let drawCost = 0; // 绘制耗时初始化
-        if (data.length > 0) {
+        if (data.thorns.length > 0) {
             text = `测试成功！${text}`;
             // 计时执行绘制，新增绘制耗时统计
             let drawStartTime = Date.now();
@@ -148,7 +154,7 @@ ui.testScript.setOnClickListener((view) => {
         }
 
         // 4. 计算跳跃参数，全程校验避免异常
-        let endX = script.ckltEndX(data);
+        let endX = script.ckltEndX(data.thorns);
         let pressTime = script.ckltJumpToXTime(endX);
         // 格式化参数展示，兜底非法值
         endX = (typeof endX === 'number' && endX >= 0) ? endX.toFixed(0) : "无效";
@@ -159,7 +165,6 @@ ui.testScript.setOnClickListener((view) => {
 
         // 6. 友好提示测试结果
         toast(text);
-
 
     } catch (e) {
         // 全局异常捕获，精准提示错误原因
@@ -185,14 +190,17 @@ ui.navigationBarSelect.setOnClickListener((view) => {
     if (script.thornsCenterYIndex == 1) {
         script.thornsCenterYIndex = 0;
         view.setText("底部导航栏: 无");
+        
         toast("已成功将底部导航栏设为: 无");
     } else {
         script.thornsCenterYIndex = 1;
         view.setText("底部导航栏: 有");
+        
         toast("已成功将底部导航栏设为: 有");
     }
 
     script.thornsCenterYPps = script.thornsCenterYListSelect(script.thornsCenterYIndex);
+    ui.setThornsCeneterYPps.setText(`荆棘中心y占比: ${script.thornsCenterYPps}`);
     return true;
 })
 
@@ -203,19 +211,19 @@ ui.toolbar.setOnLongClickListener((view) => {
     return true;
 })
 
-// 设置等待时间倍数
-ui.setWaitIntervalTime.setText(`等待时间倍数: ${script.sleepIntervalMultiples}`);
-ui.setWaitIntervalTime.setOnClickListener((view) => {
+// 设置荆棘中心y占比
+ui.setThornsCeneterYPps.setText(`荆棘中心y占比: ${script.thornsCenterYPps}`);
+ui.setThornsCeneterYPps.setOnClickListener((mainView) => {
     let DialogLayout = ui.inflate(files.read("res/layout/activity_Dialog_Input.xml"));
     DialogLayout.InputLayout.attr("helperText", "数值");
     DialogLayout.InputEditText.attr("inputType", "numberDecimal");
-    
-    let sim = script.sleepIntervalMultiples;
-    DialogLayout.InputEditText.attr("hint", sim);
+
+    let thornsCenterYPps = script.thornsCenterYPps;
+    DialogLayout.InputEditText.attr("hint", thornsCenterYPps);
 
 
     let Dialog = new MaterialAlertDialogBuilder(activity);
-    Dialog.setTitle("设置等待时间倍数")
+    Dialog.setTitle("设置荆棘中心y占比")
         .setView(DialogLayout)
 
         // 确定
@@ -223,13 +231,14 @@ ui.setWaitIntervalTime.setOnClickListener((view) => {
             let numText = DialogLayout.InputEditText.getText();
 
             if (numText != "") {
-                script.sleepIntervalMultiples = numText;
+                thornsCenterYPps = numText;
+                script.thornsCenterYPps = thornsCenterYPps;
 
             }
-            
-            ui.setWaitIntervalTime.setText(`等待时间倍数: ${script.sleepIntervalMultiples}`);
-            storage.put("sleepIntervalMultiples", script.sleepIntervalMultiples);
-            toast("成功将等待时间倍数设置为: " + numText);
+
+            mainView.setText(`荆棘中心y占比: ${script.thornsCenterYPps}`);
+            storage.put("thornsCenterYPps", script.thornsCenterYPps);
+            toast("成功将等待时间倍数设置为: " + script.thornsCenterYPps);
 
         })
 
@@ -241,11 +250,11 @@ ui.setWaitIntervalTime.setOnClickListener((view) => {
 
         // 默认
         .setNeutralButton("默认", function() {
-            script.sleepIntervalMultiples = 2.25;
-            
-            ui.setWaitIntervalTime.setText(`等待时间倍数: ${script.sleepIntervalMultiples}`);
-            storage.put("sleepIntervalMultiples", script.sleepIntervalMultiples);
-            toast("已成功恢复默认: " + script.sleepIntervalMultiples);
+            script.thornsCenterYPps = script.thornsCenterYListSelect(script.thornsCenterYIndex);
+
+            mainView.setText(`荆棘中心y占比: ${script.thornsCenterYPps}`);
+            storage.put("thornsCenterYPps", script.thornsCenterYPps);
+            toast("已成功恢复默认: " + script.thornsCenterYPps);
 
         })
 
