@@ -186,49 +186,71 @@ ui.recoverImg.setOnClickListener((view) => {
 })
 
 // 底部导航栏选项
+let navigationBarBoor = storage.get("navigationBarBoor") || false;
 ui.navigationBarSelect.setOnClickListener((view) => {
-    if (script.thornsCenterYIndex == 1) {
-        script.thornsCenterYIndex = 0;
-        view.setText("底部导航栏: 无");
-        
+    if (navigationBarBoor) {
+        navigationBarBoor = false;
+        script.thornsCenterYPpsIndex = 1;
+
         toast("已成功将底部导航栏设为: 无");
     } else {
-        script.thornsCenterYIndex = 1;
-        view.setText("底部导航栏: 有");
-        
+        navigationBarBoor = true;
+
+        script.thornsCenterYPpsList[1] = script.thornsCenterYPps;
+        script.thornsCenterYPpsIndex = 2;
+
         toast("已成功将底部导航栏设为: 有");
     }
 
-    script.thornsCenterYPps = script.thornsCenterYListSelect(script.thornsCenterYIndex);
-    ui.setThornsCeneterYPps.setText(`荆棘中心y占比: ${script.thornsCenterYPps}`);
+    script.thornsCenterYPps = script.thornsCenterYPpsSelect(script.thornsCenterYPpsIndex);
+
+    ui.navigationBarSelect.refreshUi();
+    ui.setThornsCenterYPps.refreshUi();
+
     return true;
 })
+ui.navigationBarSelect.refreshUi = function() {
+    if (navigationBarBoor) {
+        ui.navigationBarSelect.setText("底部导航栏: 有");
+    } else {
+        ui.navigationBarSelect.setText("底部导航栏: 无");
+    }
+    storage.put("navigationBarBoor", navigationBarBoor);
+}
+ui.setThornsCenterYPps.setText(`荆棘中心y占比: ${script.thornsCenterYPps}`);
+
 
 // 打开日志
 ui.toolbar.setOnLongClickListener((view) => {
     engines.execScriptFile(`./ui/logsUi.js`);
 
+
     return true;
 })
 
 // 设置荆棘中心y占比
-ui.setThornsCeneterYPps.setText(`荆棘中心y占比: ${script.thornsCenterYPps}`);
-ui.setThornsCeneterYPps.setOnClickListener((mainView) => {
-    let DialogLayout = ui.inflate(files.read("res/layout/activity_Dialog_Input.xml"));
-    DialogLayout.InputLayout.attr("helperText", "数值");
-    DialogLayout.InputEditText.attr("inputType", "numberDecimal");
+ui.setThornsCenterYPps.refreshUi = function() {
+    let view = ui.setThornsCenterYPps;
+    view.setText(`荆棘中心y占比: ${script.thornsCenterYPps}`);
+    view.setText(`${view.getText()} ( ${sd.pty(script.thornsCenterYPps)} )`);
 
+    storage.put("thornsCenterYPps", script.thornsCenterYPps);
+    storage.put("thornsCenterYPpsIndex ", script.thornsCenterYPpsIndex);
+    storage.put("thornsCenterYPpsList", script.thornsCenterYPpsList);
+
+}
+ui.setThornsCenterYPps.refreshUi();
+
+ui.setThornsCenterYPps.setOnClickListener((mainView) => {
     let thornsCenterYPps = script.thornsCenterYPps;
-    DialogLayout.InputEditText.attr("hint", thornsCenterYPps);
 
-
-    let Dialog = new MaterialAlertDialogBuilder(activity);
-    Dialog.setTitle("设置荆棘中心y占比")
-        .setView(DialogLayout)
-
-        // 确定
-        .setPositiveButton("确定", function(view, type) {
-            let numText = DialogLayout.InputEditText.getText();
+    let Dialog = MaterialDesignDialog.input({
+        title: "请你输入荆棘中心y占比",
+        helperText: "数值",
+        inputType: "numberDecimal",
+        hint: thornsCenterYPps,
+        positiveButton: ["确认", function(view, type) {
+            let numText = DialogLayout.input.getText();
 
             if (numText != "") {
                 thornsCenterYPps = numText;
@@ -236,31 +258,268 @@ ui.setThornsCeneterYPps.setOnClickListener((mainView) => {
 
             }
 
-            mainView.setText(`荆棘中心y占比: ${script.thornsCenterYPps}`);
-            storage.put("thornsCenterYPps", script.thornsCenterYPps);
-            toast("成功将等待时间倍数设置为: " + script.thornsCenterYPps);
+            mainView.refreshUi();
+            toast("成功将荆棘中心y占比设置为: " + script.thornsCenterYPps);
 
-        })
-
-        // 取消
-        .setNegativeButton("取消", function(view, type) {
+        }],
+        negativeButton: ["取消", function(view, type) {
             toast("取消");
 
-        })
+        }],
+        neutralButton: ["默认", function(view, type) {
+            script.thornsCenterYPpsIndex = 0;
+            script.thornsCenterYPps = script.thornsCenterYPpsList[script.thornsCenterYPpsIndex];
 
-        // 默认
-        .setNeutralButton("默认", function() {
-            script.thornsCenterYPps = script.thornsCenterYListSelect(script.thornsCenterYIndex);
+            mainView.refreshUi();
+            toast(`已成功恢复默认: ${script.thornsCenterYPps}`);
 
-            mainView.setText(`荆棘中心y占比: ${script.thornsCenterYPps}`);
-            storage.put("thornsCenterYPps", script.thornsCenterYPps);
-            toast("已成功恢复默认: " + script.thornsCenterYPps);
+        }]
 
-        })
+    });
 
-
+    let DialogLayout = Dialog.dialogLayout;
+    Dialog = Dialog.dialog;
     Dialog.show();
 
+    return true;
+})
+ui.setThornsCenterYPps.setOnLongClickListener(function(mainView) {
+    let thornsCenterY = sd.pty(script.thornsCenterYPps);
+    let Dialog = MaterialDesignDialog.input({
+        title: "请你输入荆棘中心y坐标",
+        helperText: "坐标 (y)",
+        inputType: "numberDecimal",
+        hint: thornsCenterY,
+        positiveButton: ["确认", function(view, type) {
+            let numText = DialogLayout.input.getText();
+
+            if (numText != "") {
+                thornsCenterY = numText;
+                script.thornsCenterYPps = sd.ypps(thornsCenterY);
+
+            }
+
+            mainView.refreshUi();
+            toast(`成功将荆棘中心y坐标设置为: ${thornsCenterY}px`);
+
+        }],
+        negativeButton: ["取消", function(view, type) {
+            toast("取消");
+
+        }],
+        neutralButton: ["默认", function(view, type) {
+            script.thornsCenterYPpsIndex = 0;
+            script.thornsCenterYPps = script.thornsCenterYPpsList[script.thornsCenterYPpsIndex];
+
+            mainView.refreshUi();
+            toast(`已成功恢复默认: ${sd.pty(script.thornsCenterYPps)}px`);
+
+        }]
+
+    });
+
+    let DialogLayout = Dialog.dialogLayout;
+    Dialog = Dialog.dialog;
+    Dialog.show();
+
+    return true;
+})
+
+
+// 状态栏偏移选项
+let statusBarHeightOffsetBoor = storage.get("statusBarHeightOffsetBoor");
+if (statusBarHeightOffsetBoor === undefined) statusBarHeightOffsetBoor = true;
+
+ui.statusBarHeightOffset.setOnClickListener((view) => {
+    if (statusBarHeightOffsetBoor) {
+        statusBarHeightOffsetBoor = false;
+
+        script.cw.setPosition(script.cw.getX(), 0);
+
+        toast("已成功将底部导航栏设为: 无");
+    } else {
+        statusBarHeightOffsetBoor = true;
+
+        script.cw.setPosition(script.cw.getX(), -getStatusBarHeightCompat());
+
+        toast("已成功将底部导航栏设为: 开启");
+    }
+
+    view.refreshUi();
+    return true;
+})
+
+// 设置状态栏偏移
+ui.statusBarHeightOffset.setOnLongClickListener(function(mainView) {
+    let Dialog = MaterialDesignDialog.input({
+        title: "请你输入状态栏y偏移数值",
+        helperText: "px",
+        inputType: "text",
+        hint: script.cw.getY(),
+        positiveButton: ["确认", function(view, type) {
+            let textNum = Number(DialogLayout.input.getText());
+
+            script.cw.setPosition(script.cw.getX(), textNum);
+            toast(`已成功将状态栏y偏移设为: ${script.cw.getY()}px`)
+
+            mainView.refreshUi();
+        }],
+        negativeButton: ["取消", function(view, type) {
+            toast("取消");
+
+        }],
+        neutralButton: ["默认", function(view, type) {
+            mainView.click();
+            mainView.click();
+
+        }]
+
+    });
+
+    let DialogLayout = Dialog.dialogLayout;
+    Dialog = Dialog.dialog;
+    Dialog.show();
+
+    return true;
+})
+ui.statusBarHeightOffset.refreshUi = function() {
+    let view = ui.statusBarHeightOffset;
+    if (statusBarHeightOffsetBoor) {
+        view.setText("状态栏偏移: 开启");
+    } else {
+        view.setText("状态栏偏移: 无");
+    }
+    if (script.cw) view.setText(`${view.getText()} ( ${script.cw.getY()}px )`);
+
+    storage.put("currentWindowY", script.cw.getY());
+    storage.put("statusBarHeightOffsetBoor", statusBarHeightOffsetBoor);
+}
+setTimeout(function() {
+    ui.statusBarHeightOffset.refreshUi();
+}, 100);
+
+
+
+// 隐藏执行代码功能
+ui.scriptTestText.setOnLongClickListener(function(view) {
+    let Dialog = MaterialDesignDialog.input({
+        title: "请你输入要执行的代码",
+        helperText: "JavaScript",
+        inputType: "textMultiLine",
+        maxLines: 2147483647,
+        hint: "",
+        positiveButton: ["执行", function(view, type) {
+            let code = DialogLayout.input.getText();
+            eval(String(code));
+
+        }],
+        negativeButton: ["取消", function(view, type) {
+            toast("取消");
+
+        }],
+        neutralButton: ["新线程执行", function(view, type) {
+            let code = DialogLayout.input.getText();
+            threads.start(function() {
+                eval(String(code));
+
+            })
+
+        }]
+
+    });
+
+    let DialogLayout = Dialog.dialogLayout;
+    Dialog = Dialog.dialog;
+    Dialog.show();
+
+
+    return true;
+})
+
+// 等待到分数变化
+ui.whileScoreChange.setOnClickListener(function(view) {
+    if (script.whileScoreChangeBoor) {
+        script.whileScoreChangeBoor = false;
+        toast("成功设置等待分数变化为: 开启");
+    } else {
+        script.whileScoreChangeBoor = true;
+        toast("成功设置等待分数变化为: 关闭");
+    }
+
+    view.refreshUi();
+    return true;
+});
+ui.whileScoreChange.setOnLongClickListener(function(mainView) {
+    let waitTime = script.waitTime;
+    let Dialog = MaterialDesignDialog.input({
+        title: "请你输入 循环等待时间 / 检测分数变化最大等待时间 ",
+        helperText: "等待时间 ( ms )",
+        inputType: "numberDecimal",
+        hint: waitTime,
+        positiveButton: ["确认", function(view, type) {
+            let numText = DialogLayout.input.getText();
+
+            if (numText != "") {
+                waitTime = numText;
+                script.waitTime = waitTime;
+
+            }
+
+            mainView.refreshUi();
+            toast(`成功将时间为: ${script.waitTime}ms`)
+
+        }],
+        negativeButton: ["取消", function(view, type) {
+            toast("取消");
+
+        }],
+        neutralButton: ["默认", function(view, type) {
+            script.waitTime = 134;
+            
+            mainView.refreshUi();
+            toast(`已成功恢复默认: ${script.waitTime}ms`)
+        }]
+
+    });
+
+    let DialogLayout = Dialog.dialogLayout;
+    Dialog = Dialog.dialog;
+    Dialog.show();
+
+
+    return true;
+})
+
+ui.whileScoreChange.refreshUi = function() {
+    let view = ui.whileScoreChange;
+
+    if (script.whileScoreChangeBoor) view.setText("等待到分数点数变化: 开启")
+    else view.setText("等待到分数点数变化: 关闭");
+
+    view.setText(`${view.getText()} ( ${script.waitTime}ms )`);
+
+    storage.put("waitTime", script.waitTime);
+    storage.put("whileScoreChangeBoor", script.whileScoreChangeBoor);
+}
+ui.whileScoreChange.refreshUi();
+
+
+// 复制 GitHub 网址
+ui.openGithubText.setOnClickListener(function(view) {
+    setClip(githubWeb);
+
+    toast(`复制成功: ${getClip()}`)
+
+    return true;
+})
+
+// 跳转 GitHub 网站
+ui.openGithubText.setOnLongClickListener(function(view) {
+    //创建Intent对象
+    var intent = new Intent(Intent.ACTION_VIEW, Uri.parse(githubWeb));
+
+    //启动Activity
+    app.startActivity(intent);
 
     return true;
 })

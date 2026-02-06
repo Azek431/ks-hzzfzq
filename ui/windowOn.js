@@ -25,11 +25,20 @@ function main(w) {
 
         return true;
     })
-    
+
     // 单次执行
     w.aRun.setOnClickListener((view) => {
         threads.start(() => {
-            script.run();
+            // 截图
+            let img = captureScreen();
+
+            // let startTime = Date.now();
+
+            script.mainRun(img);
+
+
+            // let text = `用时: ${Date.now() - startTime} ms`;
+            // toast(text)
 
         })
 

@@ -15,8 +15,8 @@ initClass.init();
 // 自动打开截图权限 --云大佬贡献
 var ScreenAuthModule = require("./module/ScreenAuthModule.js");
 
-// 两个列表数据分析
-var getListSimilarity = require("./module/getListSimilarity.js");
+// MatetialDesign 对话框模块 --Azek. 大佬制作 ( 作者 )
+var MaterialDesignDialog = require(`${files.cwd()}/module/MaterialDesignDialog.js`);
 
 
 // 内存泄漏检测
@@ -32,12 +32,10 @@ var storage = storages.create("火崽崽过大年辅助");
 ThemeColor = storage.get("ThemeColors") || "#0061A6";
 ThemeColor = "#58B2DC";
 
-/* 
-x = 155
-y = 1000;
-荆棘长度 = 87;
+// GitHub 网址
+const githubWeb = "https://github.com/Azek431/ks-hzzfzq";
 
-*/
+
 
 /* 屏幕适配 */
 function sd(x, w, y, h) {
