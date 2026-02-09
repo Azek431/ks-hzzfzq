@@ -40,13 +40,28 @@
                 app:contentPadding="5dp"
                 margin="10 10 10 10">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/openWindow"
-                    android:text="打开悬浮窗"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    margin="5 0 0 0"
-                    backgroundTint="{{ThemeColor}}" />
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/openWindow"
+                        android:text="打开悬浮窗"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        margin="5 0 0 0"
+                        backgroundTint="{{ThemeColor}}" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/ThemeColorsSelect"
+                        android:text="主题颜色选择"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        margin="5 0 0 0"
+                        backgroundTint="{{ThemeColor}}" />
+
+                </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
@@ -154,7 +169,7 @@
                         backgroundTint="{{ThemeColor}}" />
 
                     <com.google.android.material.textview.MaterialTextView
-                        android:text="提示: 状态栏偏移是关于屏幕绘制的，默认开启。具体作用: 开启则屏幕绘制y坐标会减去状态栏高度，关闭则屏幕绘制y坐标不变。一般来说创建绘制悬浮窗都会自动加上状态栏高度，所以就会造成绘制高度偏移。如何查看自身有没有这种情况: 查看绘制上边的坐标点，如果坐标点y (x, y)与真实的y坐标往上偏移，那就说明可能你的手机创建悬浮窗不会计算状态栏高度，这种情况就可以关闭。隐藏功能: 长按可以设置指定数值。"
+                        android:text="提示: 状态栏偏移是关于屏幕绘制的，默认开启。具体作用: 开启则屏幕绘制y坐标会减去状态栏高度，关闭则屏幕绘制y坐标不变。一般来说创建绘制悬浮窗都会自动加上状态栏高度，所以就会造成绘制高度偏移。如何查看自身有没有这种情况: 查看绘制上边的坐标点，如果坐标点y (x, y)与真实的y坐标往上偏移，那就说明可能你的手机创建悬浮窗不会计算状态栏高度，这种情况就可以关闭。经测试，红手指云手机需关闭，不然绘制会偏移。隐藏功能: 长按可以设置指定数值。"
                         android:layout_width="300dp"
                         android:layout_height="wrap_content"
                         textColor="{{ThemeColor}}"
@@ -191,7 +206,7 @@
                         backgroundTint="{{ThemeColor}}" />
 
                     <com.google.android.material.textview.MaterialTextView
-                        android:text="提示: 荆棘中心y屏幕占比就是: 荆棘中心y / 屏幕高度，如果出现绘制y偏移，那就可以调整这个参数。这个参数非常重要，是算法的根本，如果出现绘制y坐标偏移 那就是说明这个参数错了，请调整，不然算法就会计算错误从而失误。调整教程: 如果 绘制荆棘框 偏下，那请调低，如果偏高，那请调高。因为 y坐标 是从上往下的。如果绘制没有出现y坐标偏框情况，那就不需要调整此参数。隐藏功能: 长按可设置指定坐标。"
+                        android:text="提示: 荆棘中心y屏幕占比就是: 荆棘中心y / 屏幕高度，如果出现绘制y偏移，那就可以调整这个参数。这个参数非常重要，是算法的根本，如果出现绘制y坐标偏移 那就是说明这个参数错了，请调整，不然算法就会计算错误从而失误。调整教程: 如果 绘制荆棘框 偏下，那请调低，如果偏高，那请调高。因为 y坐标 是从上往下的。如果绘制没有出现y坐标偏框情况，那就不需要调整此参数。经测试，红手指云手机应调成: 0.65，不用云手机一般默认都是最好的。隐藏功能: 长按可设置指定坐标。"
                         android:layout_width="268dp"
                         android:layout_height="wrap_content"
                         textColor="{{ThemeColor}}"
@@ -206,7 +221,14 @@
                         backgroundTint="{{ThemeColor}}" />
 
                     <com.google.android.material.textview.MaterialTextView
-                        android:text="提示: 等待到分数点数变化，这个功能是专门为可以显示分数的地方设计的。以目前的版本比赛不会显示分数，所以比赛就建议关掉此功能，不然就会等待时间过少在空中执行。如果是要跑无尽等那种有分数显示的地方，那此功能可以超强的提升速度 ( 概念: 开启这个之后的最慢速度相当于关闭时候的最快速度，还有很高的稳定性 ( 测试中 ) )，专门为此而优化。此功能介绍: 专门为有分数显示的地方做的超强优化 (比如无尽模式)，如没有反而会负向优化。"
+                        android:text="警告: 该功能还在测试中，不建议开启，可能会出现报错等问题。此功能还在内部调试中。"
+                        android:layout_width="268dp"
+                        android:layout_height="wrap_content"
+                        textColor="#ff0000"
+                        margin="5 10 0 5" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:text="提示: 等待到分数点数变化，这个功能是专门为可以显示分数的地方设计的。以目前的版本比赛不会显示分数，所以比赛就建议关掉此功能，不然就会等待时间过少在空中执行。如果是要跑无尽等那种有分数显示的地方，那此功能可以超强的提升速度 ( 概念: 开启这个之后的最慢速度相当于关闭时候的最快速度，还有很高的稳定性 ( 测试中 ) )，专门为此而优化。此功能介绍: 专门为有分数显示的地方做的超强优化 (比如无尽模式)，如没有反而会负向优化。目前还不太稳定，所以不建议使用。"
                         android:layout_width="268dp"
                         android:layout_height="wrap_content"
                         textColor="{{ThemeColor}}"
@@ -216,14 +238,14 @@
 
             </com.google.android.material.card.MaterialCardView>
             <com.google.android.material.textview.MaterialTextView
-                android:id = "@+id/openGithubText"
+                android:id="@+id/openGithubText"
                 android:text="此产品纯公益开源免费，正版请去 GitHub 上下载。源代码和下载链接: https://github.com/Azek431/ks-hzzfzq"
                 android:layout_width="268dp"
                 android:layout_height="wrap_content"
                 textColor="{{ThemeColor}}"
                 margin="10 20 0 5" />
-                
-                <com.google.android.material.textview.MaterialTextView
+
+            <com.google.android.material.textview.MaterialTextView
                 android:text="认准 Azek 主频道 (tg): @AzekMain"
                 android:layout_width="268dp"
                 android:layout_height="wrap_content"

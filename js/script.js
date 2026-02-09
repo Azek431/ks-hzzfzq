@@ -80,7 +80,7 @@ let scoreHeightPps = 40 / 1600;
 
 // 等待到分数点数变化
 let whileScoreChangeBoor = storage.get("whileScoreChangeBoor");
-if (whileScoreChangeBoor === undefined) whileScoreChangeBoor = true;
+if (whileScoreChangeBoor === undefined) whileScoreChangeBoor = false;
 
 // 循环等待时间
 let waitTime = storage.get("waitTime") || 134;
@@ -284,7 +284,7 @@ function getScorePoints(img) {
 
         // 扫描步长
         let step = 1;
-        let baseStep = 2;
+        let baseStep = 1;
 
         let scorePixelSum = 0;
         let contScoreNum = 0;
@@ -1694,7 +1694,7 @@ function whileScorePointsChange(scorePoints, maxWaitTime) {
 
                 sp = getScorePoints(img);
 
-                sleep(3);
+                sleep(26);
             }
         })
 
@@ -1706,10 +1706,11 @@ function whileScorePointsChange(scorePoints, maxWaitTime) {
 
             if (sp != scorePoints) {
                 if (thread) thread.interrupt();
+                sleep(26);
                 return true;
             }
 
-            sleep(3);
+            sleep(16);
         }
     } catch (e) {
         console.error(e);
@@ -1747,7 +1748,7 @@ function cycleRun() {
                 img = captureScreen();
                 if (!isImageValid(img)) {
                     console.error("循环执行: 截图失败或图像无效");
-                    sleep(30);
+                    sleep(100);
                     continue;
                 }
 
@@ -1817,8 +1818,8 @@ function cycleRun() {
                 }
                 
                 // 等待到分数变化设置  --2026-2-6 23:03:10 新增
-                if (whileScoreChangeBoor) whileScorePointsChange(scorePoints, 134);
-                else sleep(134);
+                if (whileScoreChangeBoor) whileScorePointsChange(scorePoints, waitTime);
+                else sleep(waitTime);
                 
 
             } catch (e) {

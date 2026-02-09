@@ -3,7 +3,7 @@ function init() {
     console.time("初始化类用时");
 
     // OpenCV 初始化
-    runtime.images.initOpenCvIfNeeded();
+    // runtime.images.initOpenCvIfNeeded();
 
 
     // 导入 java 相关类
@@ -12,20 +12,20 @@ function init() {
     importClass(java.util.LinkedList);
 
     // 导入 OpenCV 类
-    importClass(org.opencv.core.MatOfByte);
-    importClass(org.opencv.core.Scalar);
-    importClass(org.opencv.core.Point);
-    importClass(org.opencv.core.CvType);
-    importClass(org.opencv.core.Core);
+    // importClass(org.opencv.core.MatOfByte);
+    // importClass(org.opencv.core.Scalar);
+    // importClass(org.opencv.core.Point);
+    // importClass(org.opencv.core.CvType);
+    // importClass(org.opencv.core.Core);
     importClass(org.opencv.core.Mat);
-    importClass(org.opencv.core.MatOfDMatch);
-    importClass(org.opencv.core.MatOfKeyPoint);
-    importClass(org.opencv.core.MatOfRect);
-    importClass(org.opencv.core.Size);
-    importClass(org.opencv.core.MatOfPoint2f)
+    // importClass(org.opencv.core.MatOfDMatch);
+    // importClass(org.opencv.core.MatOfKeyPoint);
+    // importClass(org.opencv.core.MatOfRect);
+    // importClass(org.opencv.core.Size);
+    // importClass(org.opencv.core.MatOfPoint2f)
 
-    importClass(org.opencv.imgproc.Imgproc);
-    importClass(org.opencv.imgcodecs.Imgcodecs)
+    // importClass(org.opencv.imgproc.Imgproc);
+    // importClass(org.opencv.imgcodecs.Imgcodecs)
 
     importClass(org.opencv.android.Utils)
 
@@ -48,7 +48,8 @@ function init() {
     importClass(android.graphics.LinearGradient)
     importClass(android.graphics.Shader)
     importClass(android.graphics.RadialGradient)
-
+    
+    
     // 导入 Material 类
     importClass(com.google.android.material.dialog.MaterialAlertDialogBuilder)
 

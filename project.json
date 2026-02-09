@@ -8,9 +8,9 @@
   },
   "assets": [],
   "build": {
-    "build_id": "5117D1A2-41",
-    "build_number": 41,
-    "build_time": 1770391392108,
+    "build_id": "AB42CE0B-45",
+    "build_number": 45,
+    "build_time": 1770622623835,
     "release": false
   },
   "encryptLevel": 3,
@@ -68,9 +68,9 @@
   "signingConfig": {
     "alias": "Azek.签名",
     "keystore": "/storage/emulated/0/脚本/.keystore/Azek签名.jks",
-    "uuid": "40cbb4a6-e5db-4674-acca-c14727a0cfe7"
+    "uuid": "5a58f739-d932-465a-bd1a-b91029e8c179"
   },
   "useFeatures": [],
-  "versionCode": 150,
-  "versionName": "1.5.0 超强优化版"
+  "versionCode": 160,
+  "versionName": "1.6.0"
 }

@@ -28,9 +28,13 @@ let ActionBarDrawerToggle = androidx.appcompat.app.ActionBarDrawerToggle;
 let MaterialColors = com.google.android.material.color.MaterialColors;
 
 // 储存
-var storage = storages.create("火崽崽过大年辅助");
-ThemeColor = storage.get("ThemeColors") || "#0061A6";
-ThemeColor = "#58B2DC";
+var storage = storages.create("Azek-快手火崽崽辅助器");
+// storages.remove("Azek-快手火崽崽辅助器");
+
+
+// 主题颜色
+var ThemeColor = storage.get("ThemeColor") || "#7B90D2";
+
 
 // GitHub 网址
 const githubWeb = "https://github.com/Azek431/ks-hzzfzq";
@@ -111,8 +115,17 @@ sd.pty = function(proportion, dh) {
 /* 屏幕适配 */
 
 
-// 初始化ui
-require("./ui/uiInit.js")
+/* 初始化ui */
+// ui事件模块
+const uiOn = require("./ui/uiOn.js");
+
+// 创建ui
+const uiInit = require("./ui/uiInit.js")
+uiInit.create();
+
+
+
+/* 初始化ui */
 
 // 创建缓存文件夹
 files.create("./temp/");
@@ -207,11 +220,11 @@ function listProc() {}
 listProc.sum = function(arr) {
     let sum = arr.reduce((prev, cur, index, arr) => {
         return prev + cur;
-        
+
     })
-    
+
     return sum;
-    
+
 }
 
 
@@ -290,6 +303,23 @@ function setShowImgValue(value, other) {
     return true;
 }
 
+// 设置主题颜色
+function setThemeColor(color) {
+    ThemeColor = color;
+    storage.put("ThemeColor", ThemeColor);
+    
+    // let intent = activity.getIntent();
+    // activity.finish();
+    // intent.addCategory(Intent.CATEGORY_DEFAULT)
+    // activity.startActivity(intent);
+    
+    // 刷新界面
+    uiInit.create();
+    
+    // ui 事件
+    uiOn.on(ui);
+    
+}
 
 
 // 悬浮窗事件处理
@@ -359,7 +389,7 @@ function getNavigationBarHeight() {
     // 方法3：通过屏幕尺寸差值计算
     let windowManager = context.getSystemService(android.content.Context.WINDOW_SERVICE);
     let display = windowManager.getDefaultDisplay();
-    
+
     let realMetrics = new android.util.DisplayMetrics();
     display.getRealMetrics(realMetrics);
     let realHeight = realMetrics.heightPixels;
@@ -383,6 +413,9 @@ function getNavigationBarHeight() {
 
 /* 函数 (function) */
 
+// ui 事件
+uiOn.on(ui);
 
-// ui Engines
-require("./ui/uiOn.js");
+// 全局事件
+let Event = require("./Event.js");
+
