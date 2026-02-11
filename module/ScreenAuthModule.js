@@ -117,7 +117,7 @@ var ScreenAuthModule = {
         }
 
         if (!success) {
-            toastLog(" 请求截图权限失败");
+            toastLog(" 请求截图权限失败，请重新打开软件。");
             if (stopScriptIfFailed) exit();
             return false;
         }

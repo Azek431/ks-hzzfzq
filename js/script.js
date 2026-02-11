@@ -45,45 +45,56 @@ function thornsCenterYPpsSelect(index) {
     return thornsCenterYPpsList[index];
 }
 
+// 初始化变量
+function init() {
+    // 基础数值
+    // 玩家中心x占比
+    playersXPps = 154.5 / 720;
 
-// 基础数值
-// 玩家中心x占比
-let playersXPps = 154.5 / 720;
-
-// 人物宽度 --2026-1-30 09:43 08 新增数据
-let playersWidthPps = 143 / 720;
-
-
-// 荆棘中心y占比
-let thornsCenterYPps = storage.get("thornsCenterYPps") || 1000 / 1600;
-let thornsCenterYPpsIndex = storage.get("thornsCenterYPpsIndex") || 1;
-let thornsCenterYPpsList = storage.get("thornsCenterYPpsList") || [1000 / 1600, 1000 / 1600, 961 / 1600, 0.65];
+    // 人物宽度 --2026-1-30 09:43 08 新增数据
+    playersWidthPps = 143 / 720;
 
 
+    // 荆棘中心y占比
+    thornsCenterYPps = storage.get("thornsCenterYPps") || 1000 / 1600;
+    thornsCenterYPpsIndex = storage.get("thornsCenterYPpsIndex") || 1;
+    thornsCenterYPpsList = [1000 / 1600, 1000 / 1600, 961 / 1600, 0.65];
 
-// 荆棘宽度占比
-let thornsWidthPps = 87 / 720;
-
-
-// 分数显示文字中心x占比  --2026-1-31 21:45:37 新增
-let scoreCenterXPps = 333 / 720;
-
-// 分数显示文字中心y占比  --2026-1-31 22:37:18 新增
-let scoreCenterYPps = 122 / 1600;
-
-// 分数显示文字宽度占比  --2026-1-31 22:37:32 新增
-let scoreWidthPps = 212 / 720;
-
-// 分数显示文字高度占比  --2026-2-4 11:55:43 新增
-let scoreHeightPps = 40 / 1600;
+    // 荆棘宽度占比
+    thornsWidthPps = 87 / 720;
 
 
-// 等待到分数点数变化
-let whileScoreChangeBoor = storage.get("whileScoreChangeBoor");
-if (whileScoreChangeBoor === undefined) whileScoreChangeBoor = false;
+    // 分数显示文字中心x占比  --2026-1-31 21:45:37 新增
+    scoreCenterXPps = 333 / 720;
 
-// 循环等待时间
-let waitTime = storage.get("waitTime") || 134;
+    // 分数显示文字中心y占比  --2026-1-31 22:37:18 新增
+    scoreCenterYPps = 122 / 1600;
+
+    // 分数显示文字宽度占比  --2026-1-31 22:37:32 新增
+    scoreWidthPps = 212 / 720;
+
+    // 分数显示文字高度占比  --2026-2-4 11:55:43 新增
+    scoreHeightPps = 40 / 1600;
+
+
+    // 等待到分数点数变化
+    whileScoreChangeBoor = storage.get("whileScoreChangeBoor");
+    if (whileScoreChangeBoor === undefined) whileScoreChangeBoor = true;
+
+    // 循环等待时间
+    waitTime = storage.get("waitTime") || 134;
+
+    // 运行速度
+    runSpeed = storage.get("runSpeed") || 1;
+
+}
+// 初始化储存
+function initStorage() {
+    setStorageData(storage, getStorageAll(storageName));
+}
+initStorage();
+init(); // 初始化
+
 
 
 /**
@@ -135,6 +146,10 @@ function getThornsData(img, options) {
     const endThreshold = gapThreshold / 2; // 判定荆棘组结束的连续空像素阈值
     let step = 1; // 扫描步长（减少计算量，平衡速度与精度）
 
+    // 预计算颜色判定阈值
+    const COLOR_THRESHOLD = 155;
+    const SUM_THRESHOLD = 400;
+
     // 核心循环：逐像素扫描识别荆棘，按状态机逻辑分组
     for (let x = startScanX; x < width; x += step) {
         // 【修改2：像素索引校准 = 实际X坐标 - checkX（因pixels从checkX开始存储像素）】
@@ -143,7 +158,7 @@ function getThornsData(img, options) {
         // 提取像素RGB值，用于颜色特征判定
         let r = (color >> 16) & 0xFF;
         // 非荆棘判定：红色值过高（排除背景等干扰像素）
-        if (r > 155) {
+        if (r > COLOR_THRESHOLD) {
             if (state == 1) { // 若正处于识别荆棘状态，累计空像素
                 emptyCount += step;
                 // 连续空像素达到阈值 → 当前荆棘组结束
@@ -158,9 +173,9 @@ function getThornsData(img, options) {
                     currentStartX = -1;
                 }
             }
-            
+
             step = 1;
-            
+
             continue; // 跳过非荆棘像素，继续下一轮扫描
         }
 
@@ -169,7 +184,7 @@ function getThornsData(img, options) {
         let b = color & 0xFF;
 
         // 荆棘判定：红≤155 且 绿+蓝≥400（匹配荆棘颜色特征）
-        if ((g + b) >= 400) {
+        if ((g + b) >= SUM_THRESHOLD) {
             if (state == 0) { // 等待状态 → 识别到新荆棘组开始
                 state = 1;
                 currentStartX = x; // 记录当前荆棘组起始X
@@ -188,9 +203,9 @@ function getThornsData(img, options) {
                 emptyCount = 0; // 重置空像素计数
             }
             lastThornX = x; // 更新上一个荆棘像素X坐标
-            
+
             step = 4;
-            
+
         } else {
             // 非荆棘判定：颜色不匹配荆棘特征
             if (state == 1) { // 若正处于识别荆棘状态，累计空像素
@@ -229,6 +244,7 @@ function getThornsData(img, options) {
 
         let LCTYPS = thornsCenterYPps;
         thornsCenterYPps = thornsCenterYPpsSelect(num);
+
         return getThornsData(img, {
             TCYPS: true,
             LCTYPS: LCTYPS
@@ -340,6 +356,7 @@ function getAllData(img) {
         };
     } catch (e) {
         console.error("getAllData 执行错误: " + e);
+
         return {
             thorns: [],
             scorePoints: 0
@@ -347,6 +364,25 @@ function getAllData(img) {
     }
 }
 
+/* 预创建可重用的绘制对象 */
+const reusablePaints = {
+    borderPaint: new Paint(),
+    textPaint: new Paint(),
+    trajectoryPaint: new Paint()
+};
+
+// 初始化绘制对象属性（一次设置，多次重用）
+function initPaints() {
+    for (let key in reusablePaints) {
+        let paint = reusablePaints[key];
+        paint.setAntiAlias(true);
+        paint.setDither(true);
+    }
+    reusablePaints.borderPaint.setStyle(Paint.Style.STROKE);
+    reusablePaints.textPaint.setStyle(Paint.Style.FILL);
+    reusablePaints.trajectoryPaint.setStyle(Paint.Style.STROKE);
+}
+initPaints();
 
 
 /**
@@ -412,8 +448,9 @@ function drawImg(img, data, options) {
     }
 
     // 返回结果
-    let imgMat = canvas.toImage().getMat();
-    return images.matToImage(imgMat);
+    let image = canvas.toImage();
+    if (img) img.recycle();
+    return image;
 }
 
 
@@ -524,9 +561,8 @@ function drawOptimizedThorns(canvas, thorns, sizes, techLevel, imgWidth, imgHeig
  * 绘制荆棘组边框
  */
 function drawEnhancedThornBorder(canvas, startX, startY, endX, endY, sizes, techLevel, index) {
-    let borderPaint = new Paint();
-    borderPaint.setAntiAlias(true);
-    borderPaint.setStyle(Paint.Style.STROKE);
+    let borderPaint = reusablePaints.borderPaint;
+    // borderPaint.setColor(Color.parseColor(colors[index % colors.length]));
 
     let left = startX - sizes.offsetX13;
     let top = startY - sizes.offsetY72
@@ -672,7 +708,7 @@ function drawOptimizedTrajectory(canvas, data, sizes, techLevel, imgWidth, imgHe
 
     if (dx !== 0 && Math.abs(dx) > sd.x(10, 720, imgWidth)) {
         let centerX = pathStartX + dx / 2;
-        let topY = pathStartY - Math.max(dx / 4.5, pathEndX / 400);
+        let topY = pathStartY - Math.max(dx / 6, pathEndX / 400);
 
         // 绘制轨迹线
         drawTrajectoryPath(canvas, pathStartX, pathStartY, pathEndX, pathEndY, centerX, topY, techLevel, imgWidth);
@@ -1570,15 +1606,20 @@ function mainRun(img) {
         threads.start(function() {
             showBitmap = null;
 
-            let bitmap = drawImg(img, data, {
+            let image = drawImg(img, data, {
                 clear: true
 
-            }).bitmap;
+            });
+
+            let bitmap = image.bitmap;
 
             if (bitmap) {
                 showBitmap = bitmap;
 
                 setTimeout(function() {
+                    // 回收图片
+                    if (image) bitmap.recycle();
+
                     showBitmap = null;
 
                 }, 300);
@@ -1674,8 +1715,8 @@ function jumpToX(endX) {
 
 // 获取复活按钮，识别到按钮立即点击
 function getResurgenceButton() {
-    // 1毫秒超时，识别到按钮就点，无按钮直接结束，不等待
-    let button = textMatches(/(原地复活|立即复活|复活)/).findOne(1);
+    // 30毫秒超时，识别到按钮就点，无按钮直接结束，不等待
+    let button = textMatches(/(原地复活|立即复活|复活)/).findOne(30);
     return button;
 
 }
@@ -1683,6 +1724,11 @@ function getResurgenceButton() {
 
 // 等待到分数点数变化
 function whileScorePointsChange(scorePoints, maxWaitTime) {
+    // 自动关闭
+    setTimeout(function() {
+        return false;
+    }, maxWaitTime);
+
     try {
         let startTime = Date.now();
         let sp = scorePoints;
@@ -1693,24 +1739,26 @@ function whileScorePointsChange(scorePoints, maxWaitTime) {
                 if (!img) continue;
 
                 sp = getScorePoints(img);
+                if (img) img.recycle(); // 回收图片
 
-                sleep(26);
+                sleep(3);
             }
         })
 
         while (true) {
             if (Date.now() - startTime >= maxWaitTime) {
                 if (thread) thread.interrupt();
+                sleep(0);
                 return false;
             }
 
             if (sp != scorePoints) {
                 if (thread) thread.interrupt();
-                sleep(26);
+                sleep(0);
                 return true;
             }
 
-            sleep(16);
+            sleep(3);
         }
     } catch (e) {
         console.error(e);
@@ -1744,6 +1792,7 @@ function cycleRun() {
 
         while (cycleRun.state) {
             let img = null;
+            if (cycleRun.thread) cycleRun.thread.interrupt(); // 中断线程
             try {
                 img = captureScreen();
                 if (!isImageValid(img)) {
@@ -1764,21 +1813,23 @@ function cycleRun() {
                     loopCount++; // 累计无数据循环次数
                     // 计数器达到阈值时，触发复活按钮检测
                     if (loopCount >= RESURGENCE_CHECK_INTERVAL) {
+                        console.log("识别复活按钮");
                         let resurgenceButton = getResurgenceButton(); // 识别复活按钮位置
                         // 识别到复活按钮时，执行点击并等待复活动画
                         if (resurgenceButton) {
                             resurgenceButton.clickCenter(); // 点击复活按钮中心位置，确保触发
                             toast("自动复活中..."); // 提示用户当前正在执行复活操作
                             sleep(500); // 复活动画持续时间（200毫秒），避免后续操作干扰复活
-                            loopCount = 0; // 重置无数据计数器，重新开始累计
                         }
+                        console.log(`重置累计无数据次数: ${loopCount}`);
+                        loopCount = 0; // 重置无数据计数器，重新开始累计
                         continue; // 跳过当前循环剩余步骤，进入下一轮检测
                     }
                 }
 
                 // 3. 计算跳跃参数：基于荆棘数据确定跳跃终点和所需时长
                 let endX = ckltEndX(data.thorns); // 计算跳跃的目标X坐标（横向跳跃核心参数）
-                let jumpTime = ckltJumpToXTime(endX); // 计算完成该跳跃所需的时间（控制跳跃力度）
+                let jumpTime = ckltJumpToXTime(endX) / runSpeed; // 计算完成该跳跃所需的时间（控制跳跃力度）
                 let sleepTime = (jumpTime * 2); // 跳跃后等待时长：基于跳跃时间的2.25倍 ( 默认 )，确保跳跃动作完成
 
                 // 4. 执行自动跳跃：当存在有效目标X坐标时，触发跳跃操作
@@ -1787,15 +1838,16 @@ function cycleRun() {
                 }
 
                 // 在绘制线程中添加图像有效性检查
-                threads.start(() => {
+                cycleRun.thread = threads.start(() => {
                     if (isImageValid(img)) {
-                        let result = drawImg(img, data, {
+                        let image = drawImg(img, data, {
                             clear: true
                         });
-                        if (result && result.bitmap) {
-                            showBitmap = result.bitmap;
+                        if (image && image.bitmap) {
+                            showBitmap = image.bitmap;
                             setTimeout(() => {
-                                showBitmap = null;
+                                // if (image) image.recycle();  // 回收图片
+                                showBitmap = null; // 删除绘制
                             }, jumpTime * 0.88);
                         }
                     }
@@ -1816,11 +1868,11 @@ function cycleRun() {
                 } else {
                     sleep(10); // 无有效跳跃目标时，兜底等待10毫秒，防止CPU空转飙升
                 }
-                
+
                 // 等待到分数变化设置  --2026-2-6 23:03:10 新增
-                if (whileScoreChangeBoor) whileScorePointsChange(scorePoints, waitTime);
-                else sleep(waitTime);
-                
+                if (whileScoreChangeBoor) whileScorePointsChange(scorePoints, waitTime / runSpeed);
+                else sleep(waitTime / runSpeed);
+
 
             } catch (e) {
                 console.error("cycleRun 循环错误: " + e);
@@ -1834,14 +1886,15 @@ function cycleRun() {
                     }
                 }
             }
-            
+
+            if (img) img.recycle(); // 回收图片
             sleep(0);
         }
 
     });
 }
 cycleRun.state = 0;
-
+cycleRun.thread = null;
 
 
 module.exports = this;

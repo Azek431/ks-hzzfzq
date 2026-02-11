@@ -45,6 +45,7 @@ function input(options) {
     if (options.inputType != undefined) input.attr("inputType", options.inputType);
     if (options.hint != undefined) input.attr("hint", options.hint);
     if (options.maxLines != undefined) input.setMaxLines(options.maxLines);
+    if (options.text != undefined) input.setText(options.text);
 
     let Dialog = new MaterialAlertDialogBuilder(activity);
     if (options.title) Dialog.setTitle(options.title);

@@ -12,7 +12,7 @@ $ui.layout(`
     </vertical>
 `);
 
-$ui.useAndroidResources();
+// $ui.useAndroidResources();
 
 
 // 设置 Material 3 亮色主题

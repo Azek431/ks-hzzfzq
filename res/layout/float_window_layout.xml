@@ -9,6 +9,7 @@
         orientation="vertical">
 
         <text
+            id = "configAdjust"
             text="快手火崽崽辅助器 {{app.versionName}}"
             textColor="#00ebff"
             textSize="8sp"
@@ -66,7 +67,7 @@
     
         <text
         text="GitHub: Azek431/ks-hzzfzq"
-        textColor="#00FFFF"
+        textColor="#7f00ff"
         textSize="10sp"
         gravity="bottom"
         margin="3 0 0 3" />

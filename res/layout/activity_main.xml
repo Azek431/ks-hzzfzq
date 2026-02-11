@@ -141,7 +141,8 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.textview.MaterialTextView
-                android:text="参数调整"
+                android:id = "@+id/configAdjust"
+                android:text="配置调整"
                 textColor="{{ThemeColor}}"
                 margin="5 10 0 0" />
 
@@ -221,22 +222,46 @@
                         backgroundTint="{{ThemeColor}}" />
 
                     <com.google.android.material.textview.MaterialTextView
-                        android:text="警告: 该功能还在测试中，不建议开启，可能会出现报错等问题。此功能还在内部调试中。"
+                        android:text="该功能可以在无尽模式中有效的提升速度。"
                         android:layout_width="268dp"
                         android:layout_height="wrap_content"
-                        textColor="#ff0000"
+                        textColor="#00ff11"
                         margin="5 10 0 5" />
 
                     <com.google.android.material.textview.MaterialTextView
-                        android:text="提示: 等待到分数点数变化，这个功能是专门为可以显示分数的地方设计的。以目前的版本比赛不会显示分数，所以比赛就建议关掉此功能，不然就会等待时间过少在空中执行。如果是要跑无尽等那种有分数显示的地方，那此功能可以超强的提升速度 ( 概念: 开启这个之后的最慢速度相当于关闭时候的最快速度，还有很高的稳定性 ( 测试中 ) )，专门为此而优化。此功能介绍: 专门为有分数显示的地方做的超强优化 (比如无尽模式)，如没有反而会负向优化。目前还不太稳定，所以不建议使用。"
+                        android:text="注意: 开启后请不要遮挡分数区域，比如消息弹窗可能就会导致计算错误。所以尽量找一个没有遮挡分数右区域的环境中，扫描区域是从分数中心位置开始，所以分数左边遮挡没事。如果使用发现不太稳定可关闭。"
+                        android:layout_width="268dp"
+                        android:layout_height="wrap_content"
+                        textColor="#ff0000"
+                        margin="5 5 0 5" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:text="提示: 等待到分数点数变化，这个功能是专门为可以显示分数的地方设计的。以目前的版本比赛不会显示分数，所以比赛就建议关掉此功能，不然就会等待时间过少在空中执行。如果是要跑无尽等那种有分数显示的地方，那此功能可以超强的提升速度 ( 概念: 开启这个之后的最慢速度相当于关闭时候的最快速度，还有很高的稳定性 ( 测试中 ) )，专门为此而优化。此功能介绍: 专门为有分数显示的地方做的超强优化 (比如无尽模式)，如没有反而会负向优化。目前经过测试一切正常，速度一分钟: 260~280，测试 2,000 米0失误。"
                         android:layout_width="268dp"
                         android:layout_height="wrap_content"
                         textColor="{{ThemeColor}}"
                         margin="5 10 0 10" />
 
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/setRunSpeed"
+                        android:text="运行速度: 1.00"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        margin="5 0 0 0"
+                        backgroundTint="{{ThemeColor}}" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:text="提示: 脚本运行速度调整，比如调整为 2 长按时间和等待时间都会除以 2。"
+                        android:layout_width="268dp"
+                        android:layout_height="wrap_content"
+                        textColor="{{ThemeColor}}"
+                        margin="5 10 0 10" />
+
+
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
+
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/openGithubText"
                 android:text="此产品纯公益开源免费，正版请去 GitHub 上下载。源代码和下载链接: https://github.com/Azek431/ks-hzzfzq"

@@ -20,6 +20,8 @@ function on(ui) {
 
         // 画板刷新
         canvas.on("draw", function(canvas) {
+            if (!showBitmapImg) return false;
+
             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             canvas.drawARGB(255, 255, 255, 255);
 
@@ -135,6 +137,10 @@ function on(ui) {
             // 6. 友好提示测试结果
             toast(text);
 
+            // 回收图片
+            img.recycle();
+
+
         } catch (e) {
             // 全局异常捕获，精准提示错误原因
             toast(`测试异常：${e.message || "未知错误"}`);
@@ -205,7 +211,7 @@ function on(ui) {
 
         storage.put("thornsCenterYPps", script.thornsCenterYPps);
         storage.put("thornsCenterYPpsIndex ", script.thornsCenterYPpsIndex);
-        storage.put("thornsCenterYPpsList", script.thornsCenterYPpsList);
+        // storage.put("thornsCenterYPpsList", script.thornsCenterYPpsList);
 
     }
     ui.setThornsCenterYPps.refreshUi();
@@ -477,7 +483,7 @@ function on(ui) {
     ui.openGithubText.setOnClickListener(function(view) {
         setClip(githubWeb);
 
-        toast(`复制成功: ${getClip()}`)
+        toast(`复制成功: ${getClip()}\n长按可打开此链接`)
 
         return true;
     })
@@ -495,37 +501,253 @@ function on(ui) {
 
     // 主题颜色选择
     ui.ThemeColorsSelect.setOnClickListener(function(view) {
-        var Color = [{
-            color: "#F8C3CD",
-            name: "退红"
-        }, {
-            color: "#FFC408",
-            name: "籐黄"
-        }, {
-            color: "#58B2DC",
-            name: "天蓝"
-        }, {
-            color: "#7DB9DE",
-            name: "勿忘草"
-        }, {
-            color: "#005CAF",
-            name: "琉璃"
-        }, {
-            color: "#7B90D2",
-            name: "红碧"
-        }, {
-            color: "#080808",
-            name: "黑"
-        }, {
-            color: "#562E37",
-            name: "似紫"
-        }, {
-            color: "#9B6E23",
-            name: "狐"
-        }, {
-            color: "#F05E1C",
-            name: "黄丹"
-        }];
+        var Color = [
+            // 原有颜色（保留前10个经典颜色）
+            {
+                color: "#F8C3CD",
+                name: "退红"
+            },
+            {
+                color: "#FFC408",
+                name: "籐黄"
+            },
+            {
+                color: "#58B2DC",
+                name: "天蓝"
+            },
+            {
+                color: "#7DB9DE",
+                name: "勿忘草"
+            },
+            {
+                color: "#005CAF",
+                name: "琉璃"
+            },
+            {
+                color: "#7B90D2",
+                name: "红碧"
+            },
+            {
+                color: "#080808",
+                name: "黑"
+            },
+            {
+                color: "#562E37",
+                name: "似紫"
+            },
+            {
+                color: "#9B6E23",
+                name: "狐"
+            },
+            {
+                color: "#F05E1C",
+                name: "黄丹"
+            },
+
+            // 新增绚丽颜色（30种）
+            {
+                color: "#FF6B9D",
+                name: "樱花粉"
+            }, // 柔和甜美的粉色
+            {
+                color: "#FF9A00",
+                name: "蜜橘橙"
+            }, // 温暖活力的橙色
+            {
+                color: "#9C27B0",
+                name: "紫罗兰"
+            }, // 经典的紫色
+            {
+                color: "#4CAF50",
+                name: "翡翠绿"
+            }, // 清新自然的绿色
+            {
+                color: "#00BCD4",
+                name: "土耳其蓝"
+            }, // 清澈的蓝绿色
+            {
+                color: "#FF4081",
+                name: "玫红"
+            }, // 鲜艳的粉红色
+            {
+                color: "#7C4DFF",
+                name: "薰衣草紫"
+            }, // 柔和的紫色
+            {
+                color: "#00E676",
+                name: "荧光绿"
+            }, // 明亮的绿色
+            {
+                color: "#FF3D00",
+                name: "火焰橙"
+            }, // 炽热的橙色
+            {
+                color: "#2979FF",
+                name: "矢车菊蓝"
+            }, // 深蓝色
+            {
+                color: "#FF9100",
+                name: "琥珀橙"
+            }, // 温暖的琥珀色
+            {
+                color: "#D500F9",
+                name: "电光紫"
+            }, // 鲜艳的紫色
+            {
+                color: "#00BFA5",
+                name: "孔雀绿"
+            }, // 优雅的蓝绿色
+            {
+                color: "#FFD600",
+                name: "向日葵黄"
+            }, // 明亮的黄色
+            {
+                color: "#F50057",
+                name: "草莓红"
+            }, // 鲜艳的红色
+            {
+                color: "#651FFF",
+                name: "靛青"
+            }, // 深紫色
+            {
+                color: "#00E5FF",
+                name: "冰川蓝"
+            }, // 冰冷的蓝色
+            {
+                color: "#76FF03",
+                name: "酸橙绿"
+            }, // 鲜艳的酸绿色
+            {
+                color: "#FF1744",
+                name: "珊瑚红"
+            }, // 温暖的红色
+            {
+                color: "#3D5AFE",
+                name: "宝蓝"
+            }, // 深蓝色
+            {
+                color: "#FF80AB",
+                name: "婴儿粉"
+            }, // 柔和的粉色
+            {
+                color: "#18FFFF",
+                name: "水蓝"
+            }, // 清澈的淡蓝色
+            {
+                color: "#B388FF",
+                name: "梦幻紫"
+            }, // 柔和的紫色
+            {
+                color: "#64FFDA",
+                name: "薄荷绿"
+            }, // 清新的薄荷色
+            {
+                color: "#FF5252",
+                name: "朱红"
+            }, // 鲜艳的红色
+            {
+                color: "#536DFE",
+                name: "星空蓝"
+            }, // 深蓝色带紫调
+            {
+                color: "#69F0AE",
+                name: "嫩绿"
+            }, // 明亮的嫩绿色
+            {
+                color: "#FF8A80",
+                name: "珊瑚粉"
+            }, // 柔和的珊瑚色
+            {
+                color: "#82B1FF",
+                name: "天青蓝"
+            }, // 天空蓝色
+            {
+                color: "#EA80FC",
+                name: "丁香紫"
+            }, // 柔和的丁香色
+
+            // 原有后20个现代颜色（保留）
+            {
+                color: "#dd1100",
+                name: "冬至之火"
+            },
+            {
+                color: "#5533ff",
+                name: "流星雨"
+            },
+            {
+                color: "#9900fa",
+                name: "鲜艳的紫色"
+            },
+            {
+                color: "#4422ee",
+                name: "紫光"
+            },
+            {
+                color: "#11eeff",
+                name: "描绘天空"
+            },
+            {
+                color: "#00ffcc",
+                name: "深水池"
+            },
+            {
+                color: "#02d8e9",
+                name: "千子蓝"
+            },
+            {
+                color: "#04d9ff",
+                name: "霓虹蓝"
+            },
+            {
+                color: "#f5c20b",
+                name: "阳光柔和"
+            },
+            {
+                color: "#0000bb",
+                name: "南极圈"
+            },
+            {
+                color: "#4433ff",
+                name: "超深蓝色"
+            },
+            {
+                color: "#00bbff",
+                name: "夏威夷清晨"
+            },
+            {
+                color: "#d827c2",
+                name: "深紫罗兰"
+            },
+            {
+                color: "#cc11bb",
+                name: "爆炸紫"
+            },
+            {
+                color: "#fe019a",
+                name: "霓虹粉"
+            },
+            {
+                color: "#39ff14",
+                name: "霓虹绿"
+            },
+            {
+                color: "#26ff2a",
+                name: "电激光柠檬"
+            },
+            {
+                color: "#ff44ee",
+                name: "光化辐射光"
+            },
+            {
+                color: "#bb02fe",
+                name: "艳丽的紫色"
+            },
+            {
+                color: "#021bf9",
+                name: "富丽蓝"
+            }
+        ];
         var popupMenu = new PopupMenu(activity, view);
         var menu = popupMenu.getMenu();
         for (var i = 0; i < Color.length; i++) {
@@ -540,7 +762,7 @@ function on(ui) {
                         break;
                     }
                 }
-                
+
                 setThemeColor(themeColor);
                 return true;
             }
@@ -549,8 +771,99 @@ function on(ui) {
         return true;
     })
 
+    // 配置调整
+    ui.configAdjust.setOnLongClickListener((view) => {
+        let allStorage = getStorageAll(storageName);
+        let storageText = JSON.stringify(allStorage, null, 2);
+        let Dialog = MaterialDesignDialog.input({
+            title: "请你输入配置数据",
+            helperText: "json",
+            inputType: "textMultiLine",
+            maxLines: 2147483647,
+            hint: storageText,
+            text: storageText,
+            positiveButton: ["修改", function(view, type) {
+                let text = DialogLayout.input.getText();
+                let json = JSON.parse(text);
+                
+                setStorageData(storage, json);
+                
+                refreshUi(); // 刷新ui
+                console.log(`成功修改配置数据为: ${JSON.stringify(getStorageAll(storageName), null, 2)}`)
+                toast("成功修改配置数据！");
+
+
+            }],
+            negativeButton: ["复制", function(view, type) {
+                setClip(storageText);
+                toast("成功将配置数据赋值到剪贴板！");
+
+            }],
+            neutralButton: ["恢复默认", function(view, type) {
+                storages.remove(storageName);
+                refreshUi();
+                toast("成功将配置数据恢复默认!");
+
+            }]
+
+        });
+
+        let DialogLayout = Dialog.dialogLayout;
+        Dialog = Dialog.dialog;
+        Dialog.show();
+        return true;
+    })
+
+    // 运行速度调整
+    ui.setRunSpeed.setOnClickListener(function(mainView) {
+        let runSpeed = script.runSpeed;
+        let Dialog = MaterialDesignDialog.input({
+            title: "请你输入运行速度",
+            helperText: "speed",
+            inputType: "numberDecimal",
+            hint: runSpeed,
+            positiveButton: ["确认", function(view, type) {
+                let numText = DialogLayout.input.getText();
+
+                if (numText != "") {
+                    runSpeed = numText;
+                    script.runSpeed = runSpeed;
+
+                }
+
+                mainView.refreshUi();
+                toast(`成功将运行速度设为: ${script.runSpeed}`)
+
+            }],
+            negativeButton: ["取消", function(view, type) {
+                toast("取消");
+
+            }],
+            neutralButton: ["默认", function(view, type) {
+                script.runSpeed = 1;
+
+                mainView.refreshUi();
+                toast(`已成功恢复默认: ${script.runSpeed}`)
+            }]
+
+        });
+
+        let DialogLayout = Dialog.dialogLayout;
+        Dialog = Dialog.dialog;
+        Dialog.show();
+    })
+    ui.setRunSpeed.refreshUi = function() {
+        let view = ui.setRunSpeed;
+
+        let speed = script.runSpeed
+        view.setText(`运行速度: ${script.runSpeed}`);
+
+        storage.put("runSpeed", script.runSpeed);
+    }
+    ui.setRunSpeed.refreshUi();
 
 }
+
 
 
 

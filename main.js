@@ -19,7 +19,7 @@ var ScreenAuthModule = require("./module/ScreenAuthModule.js");
 var MaterialDesignDialog = require(`${files.cwd()}/module/MaterialDesignDialog.js`);
 
 
-// 内存泄漏检测
+// 关闭内存泄漏检测
 $debug.setMemoryLeakDetectionEnabled(false);
 
 // ui
@@ -28,8 +28,9 @@ let ActionBarDrawerToggle = androidx.appcompat.app.ActionBarDrawerToggle;
 let MaterialColors = com.google.android.material.color.MaterialColors;
 
 // 储存
-var storage = storages.create("Azek-快手火崽崽辅助器");
-// storages.remove("Azek-快手火崽崽辅助器");
+const storageName = "Azek-快手火崽崽辅助器";
+var storage = storages.create(storageName);
+// storages.remove(storageName);
 
 
 // 主题颜色
@@ -40,8 +41,10 @@ var ThemeColor = storage.get("ThemeColor") || "#7B90D2";
 const githubWeb = "https://github.com/Azek431/ks-hzzfzq";
 
 
+/* 屏幕适配优化：缓存设备尺寸 */
+const DEVICE_WIDTH = device.width;
+const DEVICE_HEIGHT = device.height;
 
-/* 屏幕适配 */
 function sd(x, w, y, h) {
     return {
         x: sd.x(x, w),
@@ -52,14 +55,14 @@ function sd(x, w, y, h) {
 // 像素 --2026-1-31 10:51:00 新增指定宽高
 sd.x = function(x, w, dw) {
     if (!dw) {
-        dw = device.width;
+        dw = DEVICE_WIDTH;
     }
     return x * (dw / w);
 }
 
 sd.y = function(y, h, dh) {
     if (!dh) {
-        dh = device.height;
+        dh = DEVICE_HEIGHT;
     }
     return y * (dh / h);
 }
@@ -68,14 +71,14 @@ sd.y = function(y, h, dh) {
 // 比例
 sd.xp = function(proportion, dw) {
     if (!dw) {
-        dw = device.width;
+        dw = DEVICE_WIDTH;
     }
     return dw * proportion;
 }
 
 sd.yp = function(proportion, dh) {
     if (!dh) {
-        dh = device.height;
+        dh = DEVICE_HEIGHT;
     }
     return dh * proportion;
 }
@@ -84,14 +87,14 @@ sd.yp = function(proportion, dh) {
 // 计算占比 --2026-1-28 21:52 11 新增 1-31 10:56:41 修改
 sd.xpps = function(x, dw) {
     if (!dw) {
-        dw = device.width;
+        dw = DEVICE_WIDTH;
     }
     return x / dw;
 }
 
 sd.ypps = function(y, dh) {
     if (!dh) {
-        dh = device.height;
+        dh = DEVICE_HEIGHT;
     }
     return y / dh;
 }
@@ -99,17 +102,21 @@ sd.ypps = function(y, dh) {
 // 比例转坐标 (int)  --2026-1-28 21:56 44 新增
 sd.ptx = function(proportion, dw) {
     if (!dw) {
-        dw = device.width;
+        dw = DEVICE_WIDTH;
     }
     return Math.round(dw * proportion);
 }
 
 sd.pty = function(proportion, dh) {
     if (!dh) {
-        dh = device.height;
+        dh = DEVICE_HEIGHT;
     }
     return Math.round(dh * proportion);
 }
+
+
+
+
 
 
 /* 屏幕适配 */
@@ -240,6 +247,29 @@ function getArr1DIndexValue(list, x, y, n) {
     return list[y * n + x];
 }
 
+// map转Object
+function mapToObject(map) {
+    if (map == null || map === undefined) {
+        return null;
+    }
+    let iter = map.entrySet().iterator();
+    let obj = {};
+    while (iter.hasNext()) {
+        let entry = iter.next();
+        obj[entry.key] = entry.value;
+    }
+    return obj;
+}
+
+// 获取储存器所有数据
+function getStorageAll(storageName) {
+    let map = context.getSharedPreferences("autojs.localstorage." + storageName, 0);
+    return mapToObject(map.getAll());
+
+}
+
+
+
 
 // 整数颜色解析
 function intColorRzls(color) {
@@ -303,22 +333,63 @@ function setShowImgValue(value, other) {
     return true;
 }
 
+// 刷新界面
+function refreshUi() {
+    // 初始化脚本变量
+    script.init();
+
+    // 刷新界面
+    uiInit.create();
+
+    // ui 事件
+    uiOn.on(ui);
+}
+
+// 设置储存内容
+function setStorageData(storage, json) {
+    let keys = Object.keys(json);
+    let values = Object.values(json);
+
+    for (let i = 0; i < keys.length; i++) {
+        let key = keys[i];
+        let value = values[i];
+
+        if (typeof value == "string") {
+            if (value[0] == `"`) {
+                value = value.substring(1, value.length)
+            }
+            if (value[value.length - 1] == `"`) {
+                value = value.substring(0, value.length - 1)
+            }
+
+            // 布尔值处理
+            if (value == "true") {
+                storage.put(key, true);
+                continue;
+            } else if (value == "false") {
+                storage.put(key, false);
+                continue;
+            }
+
+            // 其他类型处理
+            storage.put(key, value);
+
+        } else {
+            storage.put(key, value);
+
+        }
+
+    }
+
+}
+
+
 // 设置主题颜色
 function setThemeColor(color) {
     ThemeColor = color;
     storage.put("ThemeColor", ThemeColor);
-    
-    // let intent = activity.getIntent();
-    // activity.finish();
-    // intent.addCategory(Intent.CATEGORY_DEFAULT)
-    // activity.startActivity(intent);
-    
-    // 刷新界面
-    uiInit.create();
-    
-    // ui 事件
-    uiOn.on(ui);
-    
+
+    refreshUi(); // 刷新ui
 }
 
 
@@ -418,4 +489,3 @@ uiOn.on(ui);
 
 // 全局事件
 let Event = require("./Event.js");
-

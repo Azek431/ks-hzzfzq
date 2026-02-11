@@ -8,9 +8,9 @@
   },
   "assets": [],
   "build": {
-    "build_id": "AB42CE0B-45",
-    "build_number": 45,
-    "build_time": 1770622623835,
+    "build_id": "7D082062-48",
+    "build_number": 48,
+    "build_time": 1770796394320,
     "release": false
   },
   "encryptLevel": 3,
@@ -71,6 +71,6 @@
     "uuid": "5a58f739-d932-465a-bd1a-b91029e8c179"
   },
   "useFeatures": [],
-  "versionCode": 160,
-  "versionName": "1.6.0"
+  "versionCode": 170,
+  "versionName": "1.7.0"
 }

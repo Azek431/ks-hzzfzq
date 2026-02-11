@@ -1,7 +1,7 @@
 /* ui初始化 */
 function create() {
     // 使用安卓资源
-    $ui.useAndroidResources();
+    // $ui.useAndroidResources();
     
     // 设置 Material 3 亮色主题
     activity.setTheme(com.google.android.material.R$style.Theme_Material3_Light);

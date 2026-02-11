@@ -31,17 +31,19 @@ function main(w) {
         threads.start(() => {
             // 截图
             let img = captureScreen();
-
-            // let startTime = Date.now();
-
             script.mainRun(img);
-
-
-            // let text = `用时: ${Date.now() - startTime} ms`;
-            // toast(text)
-
+            
+            // 回收图片 (防内存泄漏)
+            img.recycle();
+            
         })
 
+        return true;
+    })
+    
+    // 配置设置
+    w.configAdjust.setOnLongClickListener((view) => {
+        ui.configAdjust.longClick();
         return true;
     })
 
