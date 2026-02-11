@@ -2,10 +2,10 @@
   <img src = "images/ic_app_logo.png" alt="ic_app_logo" width="128" height="128">
 </p>
 
-<h1 align="center">快手火崽崽辅助器</h1>
+<h1 align="center"快手火崽崽辅助器</h1>
 
 <p align="center">
-  <strong>🎨 一个基于AutoJs Pro，使用犀牛（Rhino）引擎，Js + xml + 无障碍权限实现的快手火崽崽辅助器</strong>
+  <strong>🎨 一个基于AutoJs Pro, 使用犀牛（Rhino）引擎, Js + xml + 无障碍权限 实现 的 快手火崽崽辅助器</strong>
 </p>
 
 <p align="center">
@@ -16,10 +16,20 @@
   <img src="https://img.shields.io/badge/Auto.js%20Pro-9.3.11-blue?style=flat-square" alt="Auto.js Pro Version">
   <img src="https://img.shields.io/badge/Material%20Design-3-green?style=flat-square" alt="Material Design 3">
   <img src="https://img.shields.io/badge/Android-7.0+-brightgreen?style=flat-square" alt="Android Version">
-  <img src="https://img.shields.io/badge/License-GPL-yellow?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="License">
 </p>
 
 ---
+
+## 📱 预览截图
+
+<p align="center">
+  <img src="images/Main_ui.jpg" width="180" alt="主页">
+  <img src="images/Main_test.jpg" width="180" alt="测试算法">
+  <img src="images/Effect_show.jpg" width="180" alt="效果展示">
+  <img src="images/Effect_show2.jpg" width="180" alt="效果展示2">
+</p>
+
 
 ## 📖 项目技术文档
 
