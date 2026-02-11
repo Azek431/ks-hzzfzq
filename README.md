@@ -433,14 +433,14 @@ var Color = [
 3. 不得损害游戏公平性
 4. 自行承担使用风险
 
-### 技术支持
+## 👥 作者
 
-**作者**：Azek
-**邮箱**：Azek431@163.com
-**GitHub**：Azek431/ks-hzzfzq
-**交流群**：QQ群 130330601
-**QQ频道**：pd67838308
-**Telegram频道**：@AzekMain
+- **作者**：Azek
+- **邮箱**：Azek431@163.com
+- **GitHub**：Azek431/ks-hzzfzq
+- **交流群**：QQ群 130330601
+- **QQ频道**：pd67838308
+- **Telegram频道**：@AzekMain
 
 ---
 
