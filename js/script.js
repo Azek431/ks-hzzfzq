@@ -1827,6 +1827,9 @@ function cycleRun() {
                     loopCount++; // 累计无数据循环次数
                     // 计数器达到阈值时，触发复活按钮检测
                     if (loopCount >= RESURGENCE_CHECK_INTERVAL) {
+                        loopCount = 0; // 重置无数据计数器，重新开始累计
+                        console.log(`重置累计无数据次数: ${loopCount}`);
+                        
                         console.log("识别复活按钮");
                         let resurgenceButton = getResurgenceButton(); // 识别复活按钮位置
                         // 识别到复活按钮时，执行点击并等待复活动画
@@ -1835,11 +1838,8 @@ function cycleRun() {
                             toast("自动复活中..."); // 提示用户当前正在执行复活操作
                             sleep(500); // 复活动画持续时间（200毫秒），避免后续操作干扰复活
                         }
-                        console.log(`重置累计无数据次数: ${loopCount}`);
-                        loopCount = 0; // 重置无数据计数器，重新开始累计
                         continue; // 跳过当前循环剩余步骤，进入下一轮检测
                     }
-                    loopCount = 0; // 重置无数据计数器，重新开始累计
                     
                 }
 
