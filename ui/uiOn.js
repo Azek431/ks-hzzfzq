@@ -810,6 +810,7 @@ function on(ui) {
 
         let DialogLayout = Dialog.dialogLayout;
         Dialog = Dialog.dialog;
+        
         Dialog.show();
         return true;
     })

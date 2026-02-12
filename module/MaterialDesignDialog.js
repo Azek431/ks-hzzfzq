@@ -46,14 +46,19 @@ function input(options) {
     if (options.hint != undefined) input.attr("hint", options.hint);
     if (options.maxLines != undefined) input.setMaxLines(options.maxLines);
     if (options.text != undefined) input.setText(options.text);
-
+    
+    let act = activity;
+    if (options.activity != undefined) act = options.activity;
+    
     let Dialog = new MaterialAlertDialogBuilder(activity);
+    // activity.requestPermissions(['android.permission.SYSTEM_ALERT_WINDOW'], 123);
+    
     if (options.title) Dialog.setTitle(options.title);
     Dialog.setView(DialogLayout);
 
     // 确定
     if (options.positiveButton) Dialog.setPositiveButton(options.positiveButton[0], options.positiveButton[1]);
-
+    
     // 取消
     if (options.negativeButton) Dialog.setNegativeButton(options.negativeButton[0], options.negativeButton[1]);
 

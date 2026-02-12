@@ -79,7 +79,7 @@ function init() {
 
     // 等待到分数点数变化
     whileScoreChangeBoor = storage.get("whileScoreChangeBoor");
-    if (whileScoreChangeBoor === undefined) whileScoreChangeBoor = true;
+    if (whileScoreChangeBoor === undefined) whileScoreChangeBoor = false;
 
     // 循环等待时间
     waitTime = storage.get("waitTime") || 134;
@@ -1597,42 +1597,53 @@ function drawTrajectoryPanelBackground(canvas, x, y, width, height, techLevel, i
 
 
 // 脚本主内容
-function mainRun(img) {
+function mainRun() {
+    // 删除绘制
+    showBitmap = null;
+
+    // 截图
+    let img = captureScreen();
+
     // 计算荆棘组数据
     let data = getAllData(img);
+    threads.start(function() {
+        // 时间计算
+        let endX = ckltEndX(data.thorns);
+        let pressTime = ckltJumpToXTime(endX) / runSpeed;
 
-    if (data) {
-        // 绘制
-        threads.start(function() {
-            showBitmap = null;
-
-            let image = drawImg(img, data, {
+        // 长按屏幕跳跃
+        if (endX) jumpToX(endX, pressTime);
+        
+        let image;
+        if (data) {
+            // 绘制
+            image = drawImg(img, data, {
                 clear: true
 
             });
+        }
 
-            let bitmap = image.bitmap;
+        let bitmap = image.bitmap;
+        if (bitmap) {
+            showBitmap = bitmap;
 
-            if (bitmap) {
-                showBitmap = bitmap;
+            setTimeout(function() {
+                // 回收图片
+                if (image) bitmap.recycle();
 
-                setTimeout(function() {
-                    // 回收图片
-                    if (image) bitmap.recycle();
+                showBitmap = null;
 
-                    showBitmap = null;
+            }, pressTime * 0.88);
 
-                }, 300);
+        }
 
-            }
-        });
+    });
 
-        // 长按屏幕跳跃
-        let endX = ckltEndX(data.thorns);
-        jumpToX(endX);
 
-    }
+    // 回收图片 (防内存泄漏)
+    img.recycle();
 
+    return true;
 
 }
 
@@ -1699,9 +1710,9 @@ function ckltJumpToXTime(endX) {
 
 
 // 跳到指定坐标，执行长按屏幕操作
-function jumpToX(endX) {
+function jumpToX(endX, pressTime) {
     // 获取需要长按的时间
-    let pressTime = ckltJumpToXTime(endX);
+    if (pressTime == undefined) pressTime = ckltJumpToXTime(endX);
     // 校验长按时间和坐标，有效才执行跳跃
     if (pressTime < 1 || endX <= 0 || endX > device.width) return;
     // 子线程执行长按，不阻塞主流程
@@ -1791,6 +1802,9 @@ function cycleRun() {
         const RESURGENCE_CHECK_INTERVAL = 3;
 
         while (cycleRun.state) {
+            // 删除绘制
+            showBitmap = null;
+
             let img = null;
             if (cycleRun.thread) cycleRun.thread.interrupt(); // 中断线程
             try {
@@ -1825,17 +1839,17 @@ function cycleRun() {
                         loopCount = 0; // 重置无数据计数器，重新开始累计
                         continue; // 跳过当前循环剩余步骤，进入下一轮检测
                     }
+                    loopCount = 0; // 重置无数据计数器，重新开始累计
+                    
                 }
 
                 // 3. 计算跳跃参数：基于荆棘数据确定跳跃终点和所需时长
                 let endX = ckltEndX(data.thorns); // 计算跳跃的目标X坐标（横向跳跃核心参数）
-                let jumpTime = ckltJumpToXTime(endX) / runSpeed; // 计算完成该跳跃所需的时间（控制跳跃力度）
-                let sleepTime = (jumpTime * 2); // 跳跃后等待时长：基于跳跃时间的2.25倍 ( 默认 )，确保跳跃动作完成
+                let pressTime = ckltJumpToXTime(endX) / runSpeed; // 计算完成该跳跃所需的时间（控制跳跃力度）
+                let sleepTime = (pressTime * 2); // 跳跃后等待时长：基于跳跃时间的2倍 ( 默认 )，确保跳跃动作完成
 
                 // 4. 执行自动跳跃：当存在有效目标X坐标时，触发跳跃操作
-                if (endX) {
-                    jumpToX(endX); // 调用自定义跳跃函数，执行横向跳跃
-                }
+                if (endX) jumpToX(endX, pressTime); // 调用自定义跳跃函数，执行横向跳跃
 
                 // 在绘制线程中添加图像有效性检查
                 cycleRun.thread = threads.start(() => {
@@ -1848,7 +1862,7 @@ function cycleRun() {
                             setTimeout(() => {
                                 // if (image) image.recycle();  // 回收图片
                                 showBitmap = null; // 删除绘制
-                            }, jumpTime * 0.88);
+                            }, pressTime * 0.88);
                         }
                     }
                 });
