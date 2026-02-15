@@ -1,6 +1,7 @@
 {
   "abis": [
-    "arm64-v8a"
+    "arm64-v8a",
+    "armeabi-v7a"
   ],
   "androidResources": {
     "manifest": "AndroidManifest.xml",
@@ -8,15 +9,15 @@
   },
   "assets": [],
   "build": {
-    "build_id": "CBA4DFE1-59",
-    "build_number": 59,
-    "build_time": 1770906110017,
+    "build_id": "0495777B-61",
+    "build_number": 61,
+    "build_time": 1771140182250,
     "release": false
   },
-  "encryptLevel": 3,
+  "encryptLevel": 0,
   "features": {
     "activityIntentTasks": true,
-    "nodejs": "disabled"
+    "nodejs": "enabled"
   },
   "icon": "images/ic_app_logo.png",
   "launchConfig": {
@@ -29,7 +30,7 @@
   "main": "main.js",
   "name": "快手火崽崽辅助器",
   "optimization": {
-    "obfuscateComponents": false,
+    "obfuscateComponents": true,
     "removeAccessibilityService": false,
     "removeOpenCv": false,
     "unusedResources": false
@@ -72,6 +73,6 @@
     "uuid": "5a58f739-d932-465a-bd1a-b91029e8c179"
   },
   "useFeatures": [],
-  "versionCode": 175,
-  "versionName": "1.7.5"
+  "versionCode": 200,
+  "versionName": "2.0.0"
 }
