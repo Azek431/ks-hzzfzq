@@ -5,7 +5,7 @@
 <h1 align="center"快手火崽崽辅助器</h1>
 
 <p align="center">
-  <strong>🎨 一个基于AutoJs Pro, 使用犀牛（Rhino）引擎, Js + xml + 无障碍权限 实现 的 快手火崽崽辅助器</strong>
+  <strong>🎨 一个基于AutoJs Pro, 使用犀牛（Rhino）引擎 + Node.js 引擎, Js + xml + 无障碍权限 实现 的 快手火崽崽辅助器</strong>
 </p>
 
 <p align="center">
@@ -445,11 +445,11 @@ var Color = [
 
 ## 👥 作者
 
-- **作者**：Azek
-- **邮箱**：Azek431@163.com
-- **GitHub**：Azek431/ks-hzzfzq
-- **交流群**：QQ群 130330601
-- **QQ频道**：pd67838308
+- **作者**: Azek
+- **邮箱**: Azek431@163.com
+- **GitHub**: Azek431/ks-hzzfzq
+- **QQ交流群**: 130330601
+- **QQ频道**: pd67838308
 - **Telegram频道**：@AzekMain
 
 ---

@@ -41,26 +41,53 @@
                 margin="10 10 10 10">
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/openWindow"
-                        android:text="打开悬浮窗"
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        margin="5 0 0 0"
-                        backgroundTint="{{ThemeColor}}" />
+                        android:orientation="horizontal">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/ThemeColorsSelect"
-                        android:text="主题颜色选择"
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/openWindow"
+                            android:text="打开悬浮窗"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            margin="5 0 0 0"
+                            backgroundTint="{{ThemeColor}}" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/ThemeColorsSelect"
+                            android:text="主题颜色选择"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            margin="5 0 0 0"
+                            backgroundTint="{{ThemeColor}}" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        margin="5 0 0 0"
-                        backgroundTint="{{ThemeColor}}" />
+                        android:orientation="horizontal">
 
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/selectAlgorithmEngine"
+                            android:text="算法引擎: {{AlgEng}}"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            margin="5 0 0 0"
+                            backgroundTint="{{ThemeColor}}" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:text="下滑可调整更多配置↓"
+                            textColor="{{ThemeColor}}"
+                            margin="5 0 0 0" />
+
+                    </LinearLayout>
+                    
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
@@ -141,7 +168,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.textview.MaterialTextView
-                android:id = "@+id/configAdjust"
+                android:id="@+id/configAdjust"
                 android:text="配置调整"
                 textColor="{{ThemeColor}}"
                 margin="5 10 0 0" />
@@ -160,6 +187,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:text="提示: 建议使用 Node.js 引擎，Node.js 的速度更快，生态更强大。之前的 Rhino 引擎已经不再更新了。"
+                            textColor="#00ff11"
+                            margin="5 0 0 10" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/statusBarHeightOffset"

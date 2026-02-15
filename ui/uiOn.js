@@ -3,14 +3,22 @@
 function on(ui) {
     // 打开悬浮窗
     ui.openWindow.setOnClickListener(function(view) {
+        // 请求截图权限
+        sc.requestScreenCapture();
+
+        // 等待到执行完成
         threads.start(function() {
-            ScreenAuthModule.requestScreenCapture();
-            // openGetScreenPermissions();
+            while (sc.run) {
+                sleep(68);
+            }
+            
+            sleep(31);
+            // 显示悬浮窗
+            windowShow();
 
         })
 
-        windowShow();
-
+        return true;
     })
 
     // 画板
@@ -75,6 +83,12 @@ function on(ui) {
 
     // 测试算法点击事件【优化版：稳+容错+体验佳，新增绘制用时统计】
     ui.testScript.setOnClickListener((view) => {
+        // Node.js 引擎
+        if (AlgEng == "Node.js") {
+            execution.engine.emit('testScript', currentImgPath);
+            return true;
+        }
+
         // 前置校验：路径/图片读取兜底，避免空路径报错
         if (!currentImgPath || currentImgPath.trim() === "") {
             toast("测试失败：未获取到有效图片路径");
@@ -102,6 +116,12 @@ function on(ui) {
             data.scorePoints = script.getScorePoints(img);
             text += `\n获取分数区域点数用时: ${Date.now() - startTime} ms`
 
+            // 计算落点x坐标
+            data.endX = script.ckltEndX(data.thorns);
+
+            // 计算长按时间
+            data.pressTime = script.ckltJumpToXTime(data.endX);
+
 
             // 3. 初始化测试文本，区分识别结果
             let drawCost = 0; // 绘制耗时初始化
@@ -125,8 +145,8 @@ function on(ui) {
             }
 
             // 4. 计算跳跃参数，全程校验避免异常
-            let endX = script.ckltEndX(data.thorns);
-            let pressTime = script.ckltJumpToXTime(endX);
+            let endX = data.endX;
+            let pressTime = data.pressTime;
             // 格式化参数展示，兜底非法值
             endX = (typeof endX === 'number' && endX >= 0) ? endX.toFixed(0) : "无效";
             pressTime = (typeof pressTime === 'number' && pressTime >= 0) ? pressTime.toFixed(1) : "无效";
@@ -191,6 +211,8 @@ function on(ui) {
             ui.navigationBarSelect.setText("底部导航栏: 无");
         }
         storage.put("navigationBarBoor", navigationBarBoor);
+        
+        dataSynchronization();
     }
     ui.setThornsCenterYPps.setText(`荆棘中心y占比: ${script.thornsCenterYPps}`);
 
@@ -213,6 +235,7 @@ function on(ui) {
         storage.put("thornsCenterYPpsIndex ", script.thornsCenterYPpsIndex);
         // storage.put("thornsCenterYPpsList", script.thornsCenterYPpsList);
 
+dataSynchronization();
     }
     ui.setThornsCenterYPps.refreshUi();
 
@@ -365,9 +388,11 @@ function on(ui) {
             view.setText("状态栏偏移: 无");
         }
         if (script.cw) view.setText(`${view.getText()} ( ${script.cw.getY()}px )`);
-
+        
         storage.put("currentWindowY", script.cw.getY());
         storage.put("statusBarHeightOffsetBoor", statusBarHeightOffsetBoor);
+        
+        dataSynchronization();
     }
     setTimeout(function() {
         ui.statusBarHeightOffset.refreshUi();
@@ -449,7 +474,7 @@ function on(ui) {
 
             }],
             neutralButton: ["默认", function(view, type) {
-                script.waitTime = 134;
+                script.waitTime = 66;
 
                 mainView.refreshUi();
                 toast(`已成功恢复默认: ${script.waitTime}ms`)
@@ -471,10 +496,11 @@ function on(ui) {
         if (script.whileScoreChangeBoor) view.setText("等待到分数点数变化: 开启")
         else view.setText("等待到分数点数变化: 关闭");
 
-        view.setText(`${view.getText()} ( ${script.waitTime}ms )`);
+        view.setText(`${view.getText()} ( ${Number(script.waitTime).toFixed(3)}ms )`);
 
         storage.put("waitTime", script.waitTime);
         storage.put("whileScoreChangeBoor", script.whileScoreChangeBoor);
+        dataSynchronization();
     }
     ui.whileScoreChange.refreshUi();
 
@@ -785,9 +811,9 @@ function on(ui) {
             positiveButton: ["修改", function(view, type) {
                 let text = DialogLayout.input.getText();
                 let json = JSON.parse(text);
-                
+
                 setStorageData(storage, json);
-                
+
                 refreshUi(); // 刷新ui
                 console.log(`成功修改配置数据为: ${JSON.stringify(getStorageAll(storageName), null, 2)}`)
                 toast("成功修改配置数据！");
@@ -810,7 +836,7 @@ function on(ui) {
 
         let DialogLayout = Dialog.dialogLayout;
         Dialog = Dialog.dialog;
-        
+
         Dialog.show();
         return true;
     })
@@ -858,10 +884,57 @@ function on(ui) {
 
         let speed = script.runSpeed
         view.setText(`运行速度: ${script.runSpeed}`);
-
+        
         storage.put("runSpeed", script.runSpeed);
+        dataSynchronization();
     }
     ui.setRunSpeed.refreshUi();
+
+
+    // 选择算法引擎
+    ui.selectAlgorithmEngine.setOnClickListener((view) => {
+        // 引擎列表
+        let Neg = [{
+                engine: "Rhino",
+                hint: "速度很慢，已停止优化更新。"
+            },
+            {
+                engine: "Node.js",
+                hint: "速度巨快！"
+            }
+        ]
+
+        var popupMenu = new PopupMenu(activity, view);
+        var menu = popupMenu.getMenu();
+        for (var i = 0; i < Neg.length; i++) {
+            let neg = Neg[i];
+            let text = neg.engine;
+            text += ` (${neg.hint})`;
+
+            menu.add(text);
+        }
+        let themeColor = ThemeColor;
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener({
+            onMenuItemClick: function(item) {
+                let eng = String(item).split(" (")[0];
+
+                setAlgEng(eng);
+
+                view.refreshUi();
+                toast(`你已成功切换为: ${eng} 引擎！`)
+                return true;
+            }
+        }));
+        popupMenu.show();
+        return true;
+    })
+    ui.selectAlgorithmEngine.refreshUi = function() {
+        let view = ui.selectAlgorithmEngine;
+        
+        dataSynchronization();
+        view.setText(`算法引擎: ${AlgEng}`);
+    }
+    ui.selectAlgorithmEngine.refreshUi();
 
 }
 

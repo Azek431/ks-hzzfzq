@@ -40,86 +40,23 @@ var ThemeColor = storage.get("ThemeColor") || "#7B90D2";
 // GitHub 网址
 const githubWeb = "https://github.com/Azek431/ks-hzzfzq";
 
+// Rhino
+const Rhino = "Rhino";
 
-/* 屏幕适配优化：缓存设备尺寸 */
+// Node.js
+const NodeJs = "Node.js";
+
+// 算法引擎
+var AlgEng = storage.get("AlgEng") || NodeJs;
+
+
+/* 屏幕适配函数 */
+// 缓存屏幕分辨率
 const DEVICE_WIDTH = device.width;
 const DEVICE_HEIGHT = device.height;
 
-function sd(x, w, y, h) {
-    return {
-        x: sd.x(x, w),
-        y: sd.y(y, h)
-    }
-}
-
-// 像素 --2026-1-31 10:51:00 新增指定宽高
-sd.x = function(x, w, dw) {
-    if (!dw) {
-        dw = DEVICE_WIDTH;
-    }
-    return x * (dw / w);
-}
-
-sd.y = function(y, h, dh) {
-    if (!dh) {
-        dh = DEVICE_HEIGHT;
-    }
-    return y * (dh / h);
-}
-
-
-// 比例
-sd.xp = function(proportion, dw) {
-    if (!dw) {
-        dw = DEVICE_WIDTH;
-    }
-    return dw * proportion;
-}
-
-sd.yp = function(proportion, dh) {
-    if (!dh) {
-        dh = DEVICE_HEIGHT;
-    }
-    return dh * proportion;
-}
-
-
-// 计算占比 --2026-1-28 21:52 11 新增 1-31 10:56:41 修改
-sd.xpps = function(x, dw) {
-    if (!dw) {
-        dw = DEVICE_WIDTH;
-    }
-    return x / dw;
-}
-
-sd.ypps = function(y, dh) {
-    if (!dh) {
-        dh = DEVICE_HEIGHT;
-    }
-    return y / dh;
-}
-
-// 比例转坐标 (int)  --2026-1-28 21:56 44 新增
-sd.ptx = function(proportion, dw) {
-    if (!dw) {
-        dw = DEVICE_WIDTH;
-    }
-    return Math.round(dw * proportion);
-}
-
-sd.pty = function(proportion, dh) {
-    if (!dh) {
-        dh = DEVICE_HEIGHT;
-    }
-    return Math.round(dh * proportion);
-}
-
-
-
-
-
-
-/* 屏幕适配 */
+eval(files.read('./js/ScreenAdapt.js'));
+/* 屏幕适配函数 */
 
 
 /* 初始化ui */
@@ -138,28 +75,27 @@ uiInit.create();
 files.create("./temp/");
 
 
-/* 初始化实例 */
-// 初始化 ColorMapping
-// var ColorMapping = colors.mapping;
-
-
-// 创建 ColorMapping 实例
-// var cm = new ColorMapping();
-
-
-/* 初始化实例 */
-
-
-
 /* 初始变量 */
+// 启动Node.js脚本
+const execution = $engines.execScriptFile('./js/NodeScript.node.js', {
+    arguments: {
+        serverEngineId: $engines.myEngine().id,
+        cwd: files.cwd()
+    }
+})
+
 // 脚本
 var script = require("./js/script.js");
+script.drawWindow();
+script.initStorage();
+script.initVar(); // 初始化变量
+
 
 // 当前图片路径
-var currentImgPath = "./temp/当前图片.jpg";
+var currentImgPath = "./temp/currentImage.jpg";
 
 // 当前显示图片路径
-var currentShowImgPath = "./temp/当前显示图片.jpg";
+var currentShowImgPath = "./temp/currentShowImage.jpg";
 
 
 // 图片
@@ -233,8 +169,6 @@ listProc.sum = function(arr) {
     return sum;
 
 }
-
-
 
 
 // 二维[x,y] → 一维索引i，n=每行元素数
@@ -336,7 +270,9 @@ function setShowImgValue(value, other) {
 // 刷新界面
 function refreshUi() {
     // 初始化脚本变量
-    script.init();
+    script.initVar();
+
+    dataSynchronization();
 
     // 刷新界面
     uiInit.create();
@@ -344,6 +280,7 @@ function refreshUi() {
     // ui 事件
     uiOn.on(ui);
 }
+
 
 // 设置储存内容
 function setStorageData(storage, json) {
@@ -382,6 +319,21 @@ function setStorageData(storage, json) {
     }
 
 }
+
+// 设置算法引擎
+function setAlgEng(engine, options) {
+    if (engine === undefined || !engine) engine = AlgEng;
+    if (options === undefined) options = {};
+    AlgEng = engine;
+    storage.put("AlgEng", AlgEng);
+
+    if (options.requestScreenCapture != false) sc.requestScreenCapture();
+}
+setAlgEng(null, {
+    requestScreenCapture: false
+
+});
+
 
 
 // 设置主题颜色
@@ -480,7 +432,173 @@ function getNavigationBarHeight() {
     return Math.max(navBarHeight, 0); // 确保非负
 }
 
+/**
+ * 增强版图像有效性检查
+ * 修复回收状态检测，添加更严格的验证
+ */
+function isImageValid(img) {
+    if (!img) return false;
 
+    try {
+        // 优先检查回收状态
+        if (typeof img.isRecycled === 'function' && img.isRecycled()) {
+            return false;
+        }
+
+        // 检查必要方法是否存在
+        if (typeof img.getWidth !== 'function' || typeof img.getHeight !== 'function') {
+            return false;
+        }
+
+        // 检查尺寸合理性
+        let width = img.getWidth();
+        let height = img.getHeight();
+        if (width <= 0 || height <= 0 || width > 10000 || height > 10000) {
+            return false;
+        }
+
+        // 检查bitmap是否存在且有效
+        if (!img.bitmap) {
+            return false;
+        }
+
+        // 最终验证：尝试访问像素数据
+        try {
+            let pixel = img.bitmap.getPixel(0, 0);
+            return true;
+        } catch (e) {
+            return false;
+        }
+
+    } catch (e) {
+        return false;
+    }
+}
+
+// Node.js 初始化引擎变量
+function initNodeJsGlobalVar() {
+    let data = script.getData();
+    execution.engine.emit('initGlobalVar', {
+        data: data
+
+    });
+}
+
+// ==========================================
+// 屏幕截图权限模块 (Screen Capture Module)
+// ==========================================
+var sc = {};
+
+/**
+ * 请求并获取屏幕截图权限
+ * 逻辑：根据当前运行引擎（Rhino 或 NodeJs）执行不同的授权流程
+ */
+sc.requestScreenCapture = function(algEng, options) {
+    if (options === undefined) options = {};
+    // 运行状态
+    if (sc.run) return false;
+    sc.run = true;
+
+    if (algEng === undefined) algEng = AlgEng;
+
+
+    // [检查状态] 若已初始化成功，则跳过后续流程
+    if (sc.Rhino && sc.NodeJs) return true;
+
+    // [UI展示] 弹出不可取消的 Material 风格等待对话框
+    // 注意：变量接收的是 .show() 返回的 AlertDialog 实例，用于后续手动关闭
+    if (options.Dialog != false) {
+        sc.myDialog = new MaterialAlertDialogBuilder(activity)
+            .setTitle("权限申请")
+            .setMessage("正在等待授权...")
+            .setCancelable(false)
+            .setPositiveButton("取消", function() {
+                toast("用户手动取消了授权");
+            })
+            .show();
+    }
+
+    // [异步处理] 开启子线程执行授权请求，避免阻塞 UI 主线程
+    threads.start(function() {
+        // --- 场景 A: Rhino 引擎环境 ---
+        if (algEng == Rhino) {
+            if (!sc.Rhino) {
+                sc.myDialog.setMessage("正在申请 Node.js 引擎获取屏幕权限...");
+
+                // 执行内置模块的截图请求逻辑
+                ScreenAuthModule.requestScreenCapture();
+                sc.Rhino = true;
+                sc.NodeJs = false;
+
+                sc.myDialog.setMessage("权限获取成功！正在关闭对话框");
+            }
+            // [释放UI] 授权完成，关闭等待对话框
+            setTimeout(function() {
+                sc.myDialog.setMessage("关闭对话框成功！");
+                sc.myDialog.dismiss();
+                sc.run = false;
+
+            }, 68);
+
+            return true;
+
+        }
+
+        // --- 场景 B: Node.js 引擎环境 ---
+        if (algEng == NodeJs) {
+            // 初始化引擎变量
+            initNodeJsGlobalVar();
+
+            if (!sc.NodeJs) {
+                // sc.myDialog.setMessage("正在申请 Rhino 引擎获取屏幕权限...");
+                // if (!sc.Rhino) ScreenAuthModule.requestScreenCapture();
+
+                // sc.myDialog.setMessage("正在申请 Node.js 引擎获取屏幕权限...");
+                execution.engine.emit('requestScreenCapture');
+
+                // let img = captureScreen();
+                // log(img)
+                // if (!img || img.bitmap === undefined || img == null) {}
+
+                sc.myDialog.setMessage("权限获取成功！正在关闭对话框");
+                sc.NodeJs = true;
+                sc.Rhino = false;
+            }
+            // [释放UI] 授权流程触发，关闭等待对话框
+            setTimeout(function() {
+                sc.myDialog.setMessage("关闭对话框成功！");
+                sc.myDialog.dismiss();
+                sc.run = false;
+
+            }, 341);
+            return true;
+
+        }
+
+        // --- 异常处理: 引擎匹配失败 ---
+        toast("未识别的算法引擎，系统已尝试自动重置为 Node.js");
+        setAlgEng(NodeJs);
+
+        // [释放UI] 逻辑结束，确保对话框被移除
+        sc.myDialog.setMessage("关闭对话框成功！")
+        sc.myDialog.dismiss();
+        sc.run = false;
+        return false;
+    });
+};
+
+// 权限状态初始化
+sc.Rhino = false;
+sc.NodeJs = false;
+sc.run = false;
+
+// 数据同步
+function dataSynchronization() {
+    // 初始化脚本变量
+    script.initVar();
+    initNodeJsGlobalVar();
+
+}
 
 /* 函数 (function) */
 
@@ -489,3 +607,47 @@ uiOn.on(ui);
 
 // 全局事件
 let Event = require("./Event.js");
+
+
+// 初始化 NodeJs 引擎变量
+let initNodeVar = {};
+initNodeVar.run = true;
+initNodeVar.Dialog = new MaterialAlertDialogBuilder(activity)
+    .setTitle("初始化")
+    .setMessage("正在初始化 Node.js 引擎中...")
+    .setCancelable(false)
+    .setPositiveButton("取消", function() {
+        toast("用户取消了初始化");
+    })
+    .show();
+initNodeVar.thread = threads.start(function() {
+    // 监听 NodeJs 变量初始化成功
+    events.on("initGlobalVar-Suc", () => {
+        nodeInitVar = false;
+        initNodeVar.Dialog.setMessage(`NodeJs引擎初始化成功！`)
+        initNodeVar.Dialog.dismiss();
+        initNodeVar.thread.interrupt();
+
+    })
+
+    console.log("初始化 NodeJs 引擎变量");
+    let i = 0;
+    while (initNodeVar.run) {
+        i++;
+        initNodeVar.Dialog.setMessage(`尝试初始化 Node.js 引擎: ${i} 次`);
+        initNodeJsGlobalVar();
+
+        if (i >= 134) {
+            initNodeVar.Dialog.setMessage(`NodeJs引擎初始化失败！`)
+            initNodeVar.Dialog.dismiss();
+            toast("初始化 Node.js 引擎失败，已自动给你切换成 Rhino 引擎");
+            setAlgEng(Rhino);
+            refreshUi();
+
+        }
+
+        sleep(30);
+    }
+
+
+})

@@ -1,12 +1,15 @@
 /**
  * 截图服务自动管理模块
  */
+
+var ScreenAuthModuleScu = false;
+
 var ScreenAuthModule = {
     /**
-    * 请求截图
-    * * @description 自动请求截图权限
-    */
-    handleDialogLogic: function () {
+     * 请求截图
+     * * @description 自动请求截图权限
+     */
+    handleDialogLogic: function() {
         var timestamp = new Date().getTime();
         while (new Date().getTime() - timestamp < 2000) {
             var scopeTitle = packageName("com.android.systemui").textMatches(/要开始使用.*(录制|投放).*吗.*/).visibleToUser(true).findOne(100);
@@ -37,7 +40,7 @@ var ScreenAuthModule = {
     /**
      * 尝试使用 Root 权限修改系统设置
      */
-    tryRootAuth: function () {
+    tryRootAuth: function() {
         console.verbose("正在尝试 Root 授权...");
 
         try {
@@ -69,7 +72,7 @@ var ScreenAuthModule = {
     /**
      * 撤销 Root 权限
      */
-    revoke: function () {
+    revoke: function() {
         var pkg = context.getPackageName();
         shell("appops set " + pkg + " PROJECT_MEDIA default", true);
         log(" 截图权限已重置");
@@ -80,15 +83,16 @@ var ScreenAuthModule = {
      * @param {boolean} stopScriptIfFailed - 失败时是否停止脚本
      * @returns {boolean} 最终是否成功
      */
-    requestScreenCapture: function (stopScriptIfFailed) {
-
+    requestScreenCapture: function(stopScriptIfFailed) {
+        // if (ScreenAuthModuleScu) return true;
+        
         if (stopScriptIfFailed === undefined) stopScriptIfFailed = true;
 
         var hasRootSet = this.tryRootAuth();
 
         var logicThread = null;
         if (!hasRootSet && device.sdkInt > 28) {
-            logicThread = threads.start(function () {
+            logicThread = threads.start(function() {
                 ScreenAuthModule.handleDialogLogic();
             });
         }
@@ -100,6 +104,8 @@ var ScreenAuthModule = {
             } else {
                 success = images.requestScreenCapture(false);
             }
+
+
         } catch (e) {
             try {
                 success = requestScreenCapture({
@@ -118,11 +124,23 @@ var ScreenAuthModule = {
 
         if (!success) {
             toastLog(" 请求截图权限失败，请重新打开软件。");
-            if (stopScriptIfFailed) exit();
+            if (stopScriptIfFailed) {
+                sleep(100)
+                floaty.closeAll();
+                exit();
+
+            }
             return false;
         }
-
+        
+        let img = captureScreen();
+        if (!img || img.bitmap === undefined || img == null) {
+            // 权限允许成功，但无法截图
+            return false;
+        }
+        
         log(" 截图权限获取成功");
+        // ScreenAuthModuleScu = true;
         return true;
     }
 }

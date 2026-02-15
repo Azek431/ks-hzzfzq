@@ -7,13 +7,14 @@ function main(w) {
         if (view.runState) {
             view.setText("循环执行")
             view.runState = 0;
+            if (AlgEng == NodeJs) execution.engine.emit('stopCycleRun');
 
             script.cycleRun.state = 0;
 
         } else {
             view.setText("停止执行")
             view.runState = 1;
-
+            
             threads.start(function() {
                 script.cycleRun();
 
@@ -30,12 +31,12 @@ function main(w) {
     w.aRun.setOnClickListener((view) => {
         threads.start(() => {
             script.mainRun();
-            
+
         })
 
         return true;
     })
-    
+
     // 配置设置
     w.configAdjust.setOnLongClickListener((view) => {
         // ui.configAdjust.longClick();
@@ -48,13 +49,13 @@ function main(w) {
             maxLines: 2147483647,
             hint: storageText,
             text: storageText,
-            activity: activity, 
+            activity: activity,
             positiveButton: ["修改", function(view, type) {
                 let text = DialogLayout.input.getText();
                 let json = JSON.parse(text);
-                
+
                 setStorageData(storage, json);
-                
+
                 refreshUi(); // 刷新ui
                 console.log(`成功修改配置数据为: ${JSON.stringify(getStorageAll(storageName), null, 2)}`)
                 toast("成功修改配置数据！");
@@ -78,7 +79,7 @@ function main(w) {
         let DialogLayout = Dialog.dialogLayout;
         Dialog = Dialog.dialog;
         Dialog.show();
-        
+
         return true;
     })
 

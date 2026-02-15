@@ -8,9 +8,9 @@
   },
   "assets": [],
   "build": {
-    "build_id": "FF9AF935-57",
-    "build_number": 57,
-    "build_time": 1770865374273,
+    "build_id": "CBA4DFE1-59",
+    "build_number": 59,
+    "build_time": 1770906110017,
     "release": false
   },
   "encryptLevel": 3,
@@ -72,6 +72,6 @@
     "uuid": "5a58f739-d932-465a-bd1a-b91029e8c179"
   },
   "useFeatures": [],
-  "versionCode": 174,
-  "versionName": "1.7.4"
+  "versionCode": 175,
+  "versionName": "1.7.5"
 }
