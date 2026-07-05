@@ -327,9 +327,9 @@ async function cycleRun() {
     if (isRunning) return;
     isRunning = true;
     let loopCount = 0;
-    
+
     console.log("🚀 Node.js 极速流水线已启动");
-    
+
     while (isRunning) {
         let img = null;
         try {
@@ -356,7 +356,7 @@ async function cycleRun() {
                     serverEngine.emit('getResurgenceButton');
                 }
                 img.recycle();
-                await delay(200);
+                await delay(0);
                 // continue;
             }
             loopCount = 0;
@@ -365,10 +365,11 @@ async function cycleRun() {
             const endX = data.endX;
             const pressTime = await ckltJumpToXTime(endX) / (global.runSpeed || 1);
 
-            // 5. 执行非阻塞指令 (绘制 & 跳跃)
+            // 异步执行，不 await 它们，让主循环先行
+            jumpToX(endX, pressTime);
+
+            // 5. 执行非阻塞指令 (绘制)
             if (endX > 0 && data.thorns.length) {
-                // 异步执行，不 await 它们，让主循环先行
-                jumpToX(endX, pressTime);
                 serverEngine.emit('drawScreenImg', {
                     data: data,
                     imgSizes: {
